@@ -1,4 +1,4 @@
-import * as config from '../config'
+import * as config from '../config.ts'
 import { generateRoot } from './generate-root'
 import { generateScale } from './generate-scale'
 import { generateTailwind } from './generate-tailwind'
