@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:https": "next dev --experimental-https",
-    "build": "node ./styles/scripts/setup-styles.ts && next build",
+    "build": "bun run setup:styles && next build",
     "start": "next start",
     "lint": "biome lint --max-diagnostics=200",
     "lint:fix": "biome lint --write --max-diagnostics=200",
