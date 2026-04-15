@@ -113,7 +113,7 @@ export default function Home() {
     setTimeout(() => setHearts([]), 3000);
 
     try {
-      const formspreeUrl = "https://formspree.io/f/xjgjvvyv";
+      const formspreeUrl = "https://formspree.io/f/xvzdogzq";
       await fetch(formspreeUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -235,7 +235,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append('image', base64Data);
       
-      const IMGBB_API_KEY = "1879acdf9ad813a9c8c59096d927a3ae"; 
+      const IMGBB_API_KEY = "893b173d13fa2f9ae361c32df4e648c3"; 
       
       const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
         method: 'POST',
@@ -246,7 +246,7 @@ export default function Home() {
       if (imgbbData.success) {
         const imageUrl = imgbbData.data.url;
         
-        await fetch("https://formspree.io/f/xjgjvvyv", {
+        await fetch("https://formspree.io/f/xvzdogzq", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
