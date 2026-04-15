@@ -273,8 +273,9 @@ export default function Home() {
     } else {
       // 1. TẢI THIỆP
       const link = document.createElement('a');
-      link.href = '/happy.png';
+      link.href = '/thiep-moi.png';
       link.download = `Thiep_Moi_Tot_Nghiep_${guestName || 'Khach'}.png`;
+      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
