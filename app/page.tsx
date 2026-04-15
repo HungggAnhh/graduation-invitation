@@ -157,7 +157,7 @@ export default function Home() {
       const context = canvasRef.current.getContext('2d');
       if (context) {
         const canvas = canvasRef.current;
-        
+
         // 1. Ép cứng kích thước Canvas chuẩn vuông (900x900) cho sắc nét
         const TARGET_SIZE = 900;
         canvas.width = TARGET_SIZE;
@@ -190,7 +190,7 @@ export default function Home() {
         // Lật canvas theo chiều ngang để có hiệu ứng gương cho video selfie
         context.translate(canvas.width, 0);
         context.scale(-1, 1);
-        
+
         // 💄 THÊM BEAUTY FILTER (Nét và Sáng da - tùy chọn)
         context.filter = 'brightness(110%) contrast(110%) saturate(120%)';
 
@@ -200,18 +200,18 @@ export default function Home() {
         // 2. Reset transform về mặc định (ĐÚNG ĐỂ VẼ KHUNG ẢNH KHÔNG BỊ LẬT NGƯỢC CHỮ)
         context.filter = 'none'; // Tắt beauty filter cho khung ảnh
         context.setTransform(1, 0, 0, 1, 0, 0);
-        
+
         // 3. Tải khung ảnh lên và ghép vào
-        const frameImg = new window.Image(); 
-        frameImg.src = '/khung-anh.png';     
-        
+        const frameImg = new window.Image();
+        frameImg.src = '/khung-anh.png';
+
         frameImg.onload = () => {
           // Vẽ khung ảnh đè lên, co giãn cho vừa khít canvas 900x900
           context.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
           setCapturedImage(canvas.toDataURL('image/png'));
           stopCamera();
         };
-        
+
         frameImg.onerror = () => {
           setCapturedImage(canvas.toDataURL('image/png'));
           stopCamera();
@@ -234,18 +234,18 @@ export default function Home() {
       const base64Data = base64Img.split(',')[1];
       const formData = new FormData();
       formData.append('image', base64Data);
-      
-      const IMGBB_API_KEY = "893b173d13fa2f9ae361c32df4e648c3"; 
-      
+
+      const IMGBB_API_KEY = "893b173d13fa2f9ae361c32df4e648c3";
+
       const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
         method: 'POST',
         body: formData
       });
       const imgbbData: any = await imgbbResponse.json();
-      
+
       if (imgbbData.success) {
         const imageUrl = imgbbData.data.url;
-        
+
         await fetch("https://formspree.io/f/xvzdogzq", {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -443,16 +443,16 @@ export default function Home() {
                   muted
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: capturedImage ? 'none' : 'block', transform: 'scaleX(-1)' }}
                 />
-                
+
                 {/* HIỂN THỊ KHUNG ẢNH LÚC ĐANG SOI CAM (Ép chuẩn vuông 1:1) */}
                 {!capturedImage && (
-                  <img 
-                    src="/khung-anh.png" 
-                    alt="Khung hình" 
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', objectFit: 'fill' }} 
+                  <img
+                    src="/khung-anh.png"
+                    alt="Khung hình"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', objectFit: 'fill' }}
                   />
                 )}
-                
+
                 {/* HIỂN THỊ ẢNH ĐÃ CHỤP (Lấy từ canvas đã crop và lật, nên không cần lật lại ở đây) */}
                 {capturedImage && (
                   <img src={capturedImage} alt="Captured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -521,7 +521,7 @@ export default function Home() {
 
           {!isModalOpen && guestName && (
             <div className="col-span-full bg-secondary coi-pl-4 pr-4 dt:coi-pl-10 dt:pr-8 py-6 dt:py-10 flex flex-col dt:flex-row items-center dt:items-start justify-between gap-8 dt:gap-12 relative z-10">
-              
+
               {/* PHẦN CHỮ (Điện thoại nằm dưới, PC nằm trái) */}
               <div className="w-full dt:w-[65%] order-2 dt:order-1 text-left">
                 <RotateRevealText
@@ -560,9 +560,9 @@ export default function Home() {
                 </RotateRevealText>
               </div>
 
-              {/* PHẦN HÌNH ẢNH (Điện thoại nằm trên căn giữa, PC nằm phải và CANH GIỮA TRÊN PC) */}
-              <div className="w-full order-1 dt:order-2 flex justify-center dt:justify-center dt:mx-auto dt:w-[30%]">
-                <div className="w-[70%] sm:w-[60%] dt:w-full">
+              {/* PHẦN HÌNH ẢNH (Điện thoại nằm trên căn giữa, PC nằm phải và ĐÃ TĂNG KÍCH THƯỚC) */}
+              <div className="w-full order-1 dt:order-2 flex justify-center items-center dt:w-[45%] dt:ml-auto">
+                <div className="w-[85%] sm:w-[75%] dt:w-full flex justify-center">
                   <Image
                     src="/image9.png"
                     alt="Thank you portrait"
@@ -570,8 +570,8 @@ export default function Home() {
                     aspectRatio={3 / 4}
                     priority
                     mobileSize="100vw"
-                    desktopSize="30vw"
-                    style={{ border: 'none' }}
+                    desktopSize="45vw"
+                    style={{ border: 'none', margin: '0 auto' }}
                   />
                 </div>
               </div>
