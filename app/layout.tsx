@@ -8,7 +8,7 @@ import '~/styles/css/index.css'
 import { fontsVariable } from '~/styles/fonts'
 
 const APP_NAME = AppData.name
-const APP_DEFAULT_TITLE = 'Graduation Ceremony'
+const APP_DEFAULT_TITLE = 'Graduation MaiDat'
 const APP_TITLE_TEMPLATE = '%s - Graduation Ceremony'
 const APP_DESCRIPTION = AppData.description
 const APP_BASE_URL =
