@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from 'next'
 import type { PropsWithChildren } from 'react'
 import { RealViewport } from '~/components/real-viewport'
 import AppData from '~/package.json'
-import { themes } from '~/styles/colors'
+
 import '~/styles/css/index.css'
 
 import { fontsVariable } from '~/styles/fonts'
 
 const APP_NAME = AppData.name
-const APP_DEFAULT_TITLE = 'Graduation MaiDat'
+const APP_DEFAULT_TITLE = 'Graduation HungAnh'
 const APP_TITLE_TEMPLATE = '%s - Graduation Ceremony'
 const APP_DESCRIPTION = AppData.description
 const APP_BASE_URL =
@@ -56,18 +56,30 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: themes.light.primary,
-  colorScheme: 'normal',
+  themeColor: '#080d1a',
+  colorScheme: 'dark',
 }
 
 export default async function Layout({ children }: PropsWithChildren) {
   return (
     <html
-      lang="en"
+      lang="vi"
       dir="ltr"
       className={fontsVariable}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Great+Vibes&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body suppressHydrationWarning>
         <RealViewport />
         {children}

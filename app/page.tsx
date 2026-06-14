@@ -1,72 +1,875 @@
 'use client'
 
-import cn from 'clsx'
 import { useRef, useState, useEffect } from 'react'
 import confetti from 'canvas-confetti'
 import { CountdownBanner } from '~/components/countdown-banner'
-import {
-  ArrowRightIcon,
-  type ArrowRightIconHandle,
-} from '~/components/icon/arrow-right'
-import { Image } from '~/components/image'
-import RotateRevealText from '~/components/rotate-reveal-text'
 import { Wrapper } from '~/components/wrapper'
-import { useRotateReveal } from '~/hooks/use-rotate-reveal'
+import WelcomeOverlay from '~/components/WelcomeOverlay'
+import InteractiveCardPreview, { type InteractiveCardPreviewRef } from '~/components/InteractiveCardPreview'
 
+// ==========================================
+// CONSTANTS
+// ==========================================
 const CONTACT_LINKS = [
   {
-    label: 'Directions to School',
-    href: 'https://www.google.com/maps/place/HUIT+MEDIA+-+K%C3%AAnh+th%C3%B4ng+tin+v%C3%A0+truy%E1%BB%81n+th%C3%B4ng+%C4%90%E1%BA%A1i+h%E1%BB%8Dc+C%C3%B4ng+Th%C6%B0%C6%A1ng+TPHCM/@10.8071641,106.626188,17z/data=!3m1!4b1!4m6!3m5!1s0x31752b0f70a07397:0x3618522127c73084!8m2!3d10.8071588!4d106.6287629!16s%2Fg%2F11p5_7cd9x?entry=ttu&g_ep=EgoyMDI2MDQwOC4wIKXMDSoASAFQAw%3D%3D',
-    ariaLabel: 'Open Google Maps directions to the ceremony',
-    borderSecondary: false,
+    label: 'Chỉ đường tới trường',
+    href: 'https://maps.app.goo.gl/9bRzpZ4yMcYc4Ecv6',
+    icon: '📍',
     isExternal: true,
   },
   {
     label: 'Facebook',
-    href: 'https://www.facebook.com/mai.quoc.at.499699',
-    ariaLabel: 'Open Facebook in a new tab',
-    borderSecondary: true,
+    href: 'https://www.facebook.com/vo.mai.hung.anh.2024/',
+    icon: '💬',
     isExternal: true,
   },
   {
-    label: '0986570014',
-    href: 'tel:0986570014',
-    ariaLabel: 'Call',
-    borderSecondary: true,
+    label: '0366718765',
+    href: 'tel:0366718765',
+    icon: '📞',
     isExternal: false,
   },
 ] as const
 
-// Đã cập nhật ngày 21/04/2026 lúc 9h sáng
-const TARGET_DATE = new Date('2026-04-21T09:00:00+07:00')
+const GALLERY_IMAGES = [
+  
+  { src: '/image9.png', alt: 'Kỷ niệm 1' },
+  { src: '/image2.png', alt: 'Kỷ niệm 2' },
+  { src: '/image3.png', alt: 'Kỷ niệm 3' },
+]
 
+const TARGET_DATE = new Date('2026-06-20T14:30:00+07:00')
+
+// ==========================================
+// PARTICLE BACKGROUND
+// ==========================================
+function ParticleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animId: number
+    const particles: { x: number; y: number; r: number; dx: number; dy: number; o: number; phase: number }[] = []
+    const count = Math.min(80, Math.floor(window.innerWidth / 15))
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.5,
+        dx: (Math.random() - 0.5) * 0.3,
+        dy: (Math.random() - 0.5) * 0.3,
+        o: Math.random() * 0.5 + 0.2,
+        phase: Math.random() * Math.PI * 2,
+      })
+    }
+
+    const draw = (time: number) => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      for (const p of particles) {
+        p.x += p.dx
+        p.y += p.dy
+        if (p.x < 0) p.x = canvas.width
+        if (p.x > canvas.width) p.x = 0
+        if (p.y < 0) p.y = canvas.height
+        if (p.y > canvas.height) p.y = 0
+
+        const twinkle = 0.5 + 0.5 * Math.sin(time * 0.001 + p.phase)
+        const isGold = p.phase > Math.PI
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fillStyle = isGold
+          ? `rgba(201, 169, 110, ${p.o * twinkle})`
+          : `rgba(96, 165, 250, ${p.o * twinkle * 0.7})`
+        ctx.fill()
+      }
+
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x
+          const dy = particles[i].y - particles[j].y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < 120) {
+            ctx.beginPath()
+            ctx.moveTo(particles[i].x, particles[i].y)
+            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.strokeStyle = `rgba(96, 165, 250, ${0.06 * (1 - dist / 120)})`
+            ctx.lineWidth = 0.5
+            ctx.stroke()
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(draw)
+    }
+    animId = requestAnimationFrame(draw)
+
+    return () => {
+      cancelAnimationFrame(animId)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}
+    />
+  )
+}
+
+// ==========================================
+// AUDIO VISUALIZER BUTTON
+// ==========================================
+function AudioVisualizer({ isPlaying, onClick }: { isPlaying: boolean; onClick: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const barsRef = useRef<number[]>(Array.from({ length: 12 }, () => Math.random() * 0.3 + 0.1))
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')!
+    let animId: number
+
+    const draw = () => {
+      ctx.clearRect(0, 0, 64, 64)
+      const cx = 32, cy = 32, r = 24
+      const bars = barsRef.current
+
+      // Draw outer ring
+      ctx.beginPath()
+      ctx.arc(cx, cy, r + 2, 0, Math.PI * 2)
+      ctx.strokeStyle = 'rgba(201,169,110,0.2)'
+      ctx.lineWidth = 1
+      ctx.stroke()
+
+      // Draw visualizer bars
+      for (let i = 0; i < bars.length; i++) {
+        const angle = (i / bars.length) * Math.PI * 2 - Math.PI / 2
+        if (isPlaying) {
+          bars[i] += (Math.random() - 0.5) * 0.15
+          bars[i] = Math.max(0.1, Math.min(1, bars[i]))
+        } else {
+          bars[i] += (0.15 - bars[i]) * 0.08
+        }
+        const barLen = bars[i] * 10
+        const x1 = cx + Math.cos(angle) * (r - 2)
+        const y1 = cy + Math.sin(angle) * (r - 2)
+        const x2 = cx + Math.cos(angle) * (r - 2 + barLen)
+        const y2 = cy + Math.sin(angle) * (r - 2 + barLen)
+
+        const gradient = ctx.createLinearGradient(x1, y1, x2, y2)
+        gradient.addColorStop(0, 'rgba(37,99,235,0.8)')
+        gradient.addColorStop(1, 'rgba(201,169,110,0.9)')
+
+        ctx.beginPath()
+        ctx.moveTo(x1, y1)
+        ctx.lineTo(x2, y2)
+        ctx.strokeStyle = gradient
+        ctx.lineWidth = 2.5
+        ctx.lineCap = 'round'
+        ctx.stroke()
+      }
+
+      // Inner icon
+      ctx.font = '16px serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(isPlaying ? '♪' : '🔇', cx, cy + 1)
+
+      animId = requestAnimationFrame(draw)
+    }
+    animId = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(animId)
+  }, [isPlaying])
+
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'fixed', bottom: '24px', left: '24px', zIndex: 999,
+        background: 'linear-gradient(135deg, rgba(30,36,68,0.85), rgba(15,27,61,0.95))',
+        border: '1px solid rgba(201,169,110,0.3)', borderRadius: '50%',
+        width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        backdropFilter: 'blur(10px)', cursor: 'pointer', transition: 'all 0.3s', padding: 0,
+        boxShadow: isPlaying
+          ? '0 0 20px rgba(37,99,235,0.3), 0 0 40px rgba(201,169,110,0.1)'
+          : '0 4px 20px rgba(0,0,0,0.3)',
+      }}
+    >
+      <canvas ref={canvasRef} width={64} height={64} style={{ width: '64px', height: '64px' }} />
+    </button>
+  )
+}
+
+// ==========================================
+// VIRTUAL GRADUATION SCROLL (REPLACES VIP TICKET)
+// ==========================================
+function GraduationScroll({ guestName }: { guestName: string }) {
+  const [isOpened, setIsOpened] = useState(false)
+  const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 })
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isOpened) return
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    setMousePos({
+      x: (e.clientX - rect.left) / rect.width,
+      y: (e.clientY - rect.top) / rect.height,
+    })
+  }
+
+  const handleMouseLeave = () => setMousePos({ x: 0.5, y: 0.5 })
+
+  const rotateX = isOpened ? 0 : (mousePos.y - 0.5) * -15
+  const rotateY = isOpened ? 0 : (mousePos.x - 0.5) * 15
+
+  const handleOpen = () => {
+    if (!isOpened) {
+      setIsOpened(true)
+      // Burst confetti!
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      })
+    }
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleOpen}
+      style={{
+        width: '100%',
+        maxWidth: isOpened ? '600px' : '420px',
+        margin: '0 auto',
+        perspective: '1000px',
+        cursor: isOpened ? 'default' : 'pointer',
+        transition: 'max-width 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
+      }}
+    >
+      <div
+        style={{
+          transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+          transition: 'transform 0.1s ease-out',
+          position: 'relative',
+        }}
+      >
+        {!isOpened ? (
+          /* CLOSED SCROLL VIEW */
+          <div
+            className="closed-scroll-design"
+            style={{
+              background: 'linear-gradient(135deg, #0e1738 0%, #060b1e 100%)',
+              border: '1px solid rgba(201,169,110,0.3)',
+              borderRadius: '20px',
+              padding: '40px 20px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(37,99,235,0.15)',
+              position: 'relative',
+              overflow: 'hidden',
+              minHeight: '260px',
+            }}
+          >
+            {/* Background glowing grid */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'radial-gradient(circle at 50% 50%, rgba(37,99,235,0.08) 0%, transparent 70%)',
+              pointerEvents: 'none',
+            }} />
+
+            {/* The Scroll Cylindrical Body (drawn horizontally) */}
+            <div style={{
+              width: '240px',
+              height: '50px',
+              background: 'linear-gradient(to bottom, #9a1c24 0%, #c82333 30%, #9a1c24 70%, #5a1015 100%)',
+              borderRadius: '6px',
+              position: 'relative',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              animation: 'floatScroll 3s ease-in-out infinite',
+            }}>
+              {/* Left knob */}
+              <div style={{
+                position: 'absolute', left: '-12px', width: '12px', height: '60px',
+                background: 'linear-gradient(to bottom, #c9a96e, #b39255, #c9a96e)',
+                borderRadius: '4px 0 0 4px',
+                borderRight: '2px solid #5a1015',
+                boxShadow: '-3px 4px 10px rgba(0,0,0,0.3)',
+              }} />
+              <div style={{
+                position: 'absolute', left: '-16px', width: '6px', height: '30px',
+                background: '#b39255', borderRadius: '3px 0 0 3px',
+              }} />
+
+              {/* Right knob */}
+              <div style={{
+                position: 'absolute', right: '-12px', width: '12px', height: '60px',
+                background: 'linear-gradient(to bottom, #c9a96e, #b39255, #c9a96e)',
+                borderRadius: '0 4px 4px 0',
+                borderLeft: '2px solid #5a1015',
+                boxShadow: '3px 4px 10px rgba(0,0,0,0.3)',
+              }} />
+              <div style={{
+                position: 'absolute', right: '-16px', width: '6px', height: '30px',
+                background: '#b39255', borderRadius: '0 3px 3px 0',
+              }} />
+
+              {/* Gold Ribbon tied in the middle */}
+              <div style={{
+                width: '32px',
+                height: '100%',
+                background: 'linear-gradient(90deg, #c9a96e, #e8d5a8, #b39255)',
+                position: 'absolute',
+                boxShadow: '0 0 8px rgba(0,0,0,0.3)',
+              }} />
+
+              {/* Wax Seal / Seal Badge */}
+              <div style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '50%',
+                background: 'radial-gradient(circle, #e22d3d 0%, #a81c27 100%)',
+                border: '2px solid #c9a96e',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.4), 0 0 15px rgba(201,169,110,0.4)',
+                position: 'absolute',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                color: '#fff',
+                fontWeight: 'bold',
+                zIndex: 3,
+              }}
+              className="wax-seal-hover"
+              >
+                🎓
+              </div>
+            </div>
+
+            {/* Instruction Text */}
+            <p style={{
+              fontFamily: '"Inter", sans-serif',
+              fontSize: '14px',
+              color: '#e8d5a8',
+              fontWeight: 600,
+              marginTop: '40px',
+              letterSpacing: '0.05em',
+            }}>
+              NHẤP ĐỂ MỞ CUỘN THƯ
+            </p>
+            <p style={{
+              fontFamily: '"Inter", sans-serif',
+              fontSize: '11px',
+              color: 'rgba(238,240,247,0.4)',
+              marginTop: '6px',
+            }}>
+              Một lời ngỏ đặc biệt dành riêng cho bạn ✨
+            </p>
+          </div>
+        ) : (
+          /* OPENED PARCHMENT CERTIFICATE VIEW */
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #fdfbf7 0%, #f5eedc 100%)',
+              border: '4px double #c9a96e',
+              borderRadius: '16px',
+              padding: 'clamp(24px, 6vw, 48px) clamp(20px, 5vw, 40px)',
+              boxShadow: '0 30px 70px rgba(0,0,0,0.6), 0 0 50px rgba(201,169,110,0.15)',
+              position: 'relative',
+              overflow: 'hidden',
+              animation: 'unrollScroll 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards',
+              transformOrigin: 'top center',
+              color: '#1c223a',
+              textAlign: 'center',
+            }}
+          >
+            {/* Elegant corner ornaments */}
+            <div style={{ position: 'absolute', top: '12px', left: '12px', width: '24px', height: '24px', borderTop: '2px solid #c9a96e', borderLeft: '2px solid #c9a96e' }} />
+            <div style={{ position: 'absolute', top: '12px', right: '12px', width: '24px', height: '24px', borderTop: '2px solid #c9a96e', borderRight: '2px solid #c9a96e' }} />
+            <div style={{ position: 'absolute', bottom: '12px', left: '12px', width: '24px', height: '24px', borderBottom: '2px solid #c9a96e', borderLeft: '2px solid #c9a96e' }} />
+            <div style={{ position: 'absolute', bottom: '12px', right: '12px', width: '24px', height: '24px', borderBottom: '2px solid #c9a96e', borderRight: '2px solid #c9a96e' }} />
+
+            {/* Certificate Header */}
+            <p style={{
+              fontFamily: '"Inter", sans-serif',
+              fontSize: '10px',
+              letterSpacing: '0.4em',
+              color: '#a38752',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              marginBottom: '10px',
+            }}>
+              LỄ TỐT NGHIỆP 2026
+            </p>
+            <h3 style={{
+              fontFamily: '"Playfair Display", serif',
+              fontSize: 'clamp(1.5rem, 5vw, 2.1rem)',
+              fontWeight: 700,
+              color: '#1c2e5a',
+              marginBottom: '6px',
+            }}>
+              CHỨNG NHẬN TRI KỶ
+            </h3>
+            
+            {/* Decorative divider */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              margin: '16px 0 24px',
+            }}>
+              <div style={{ width: '40px', height: '1px', backgroundColor: '#c9a96e' }} />
+              <span style={{ color: '#c9a96e', fontSize: '14px' }}>❖</span>
+              <div style={{ width: '40px', height: '1px', backgroundColor: '#c9a96e' }} />
+            </div>
+
+            {/* Certificate Body */}
+            <p style={{
+              fontFamily: '"Inter", sans-serif',
+              fontSize: '11px',
+              letterSpacing: '0.15em',
+              color: '#8d8c89',
+              textTransform: 'uppercase',
+              marginBottom: '12px',
+            }}>
+              TRÂN TRỌNG CHỨNG NHẬN KHÁCH MỜI
+            </p>
+
+            <h4 style={{
+              fontFamily: '"Great Vibes", cursive',
+              fontSize: 'clamp(2.5rem, 7vw, 3.8rem)',
+              color: '#b59452',
+              margin: '8px 0 16px',
+              lineHeight: 1,
+            }}>
+              {guestName}
+            </h4>
+
+            <p style={{
+              fontFamily: '"Playfair Display", serif',
+              fontSize: 'clamp(14px, 4vw, 17px)',
+              lineHeight: 1.8,
+              color: '#3c404f',
+              maxWidth: '460px',
+              margin: '0 auto 28px',
+              fontStyle: 'italic',
+            }}>
+"Mỗi cuộc gặp gỡ đều để lại một dấu ấn. Cảm ơn vì đã trở thành một phần trong thanh xuân của mình."            </p>
+
+            {/* Event Details on Parchment */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '30px',
+              borderTop: '1px solid rgba(201,169,110,0.3)',
+              borderBottom: '1px solid rgba(201,169,110,0.3)',
+              padding: '16px 0',
+              maxWidth: '380px',
+              margin: '0 auto 28px',
+            }}>
+              {[
+                { label: 'NGÀY HỘI', value: '20 / 06 / 2026' },
+                { label: 'GIỜ ĐÓN', value: '14:30 AM' },
+              ].map(item => (
+                <div key={item.label} style={{ textAlign: 'center' }}>
+                  <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '9px', letterSpacing: '0.1em', color: '#8d8c89', textTransform: 'uppercase' }}>{item.label}</p>
+                  <p style={{ fontFamily: '"Playfair Display", serif', fontSize: '15px', color: '#1c2e5a', fontWeight: 600, marginTop: '2px' }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Signature Area */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              maxWidth: '420px',
+              margin: '0 auto',
+            }}>
+              {/* Seal badge */}
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  border: '1px dashed #b59452',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '28px',
+                  color: '#b59452',
+                  transform: 'rotate(-10deg)',
+                  background: 'rgba(201,169,110,0.03)',
+                }}>
+                  🎓
+                </div>
+                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '8px', color: '#8d8c89', marginTop: '6px', letterSpacing: '0.1em' }}>GRADUATION 2026</span>
+              </div>
+
+              {/* Signature */}
+              <div style={{ textAlign: 'center', paddingRight: '20px' }}>
+                <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '10px', color: '#8d8c89', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Người gửi tri ân</p>
+                <p style={{
+                  fontFamily: '"Great Vibes", cursive',
+                  fontSize: '32px',
+                  color: '#1c2e5a',
+                  lineHeight: 0.8,
+                  marginBottom: '6px',
+                }}>
+                  Hùng Anh
+                </p>
+                <div style={{ width: '100px', height: '1px', backgroundColor: 'rgba(201,169,110,0.4)', margin: '0 auto' }} />
+              </div>
+            </div>
+
+            {/* Roll Up Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsOpened(false);
+              }}
+              style={{
+                marginTop: '36px',
+                padding: '8px 20px',
+                borderRadius: '20px',
+                border: '1px solid rgba(201,169,110,0.4)',
+                background: 'transparent',
+                color: '#a38752',
+                fontFamily: '"Inter", sans-serif',
+                fontSize: '11px',
+                fontWeight: 600,
+                letterSpacing: '0.1em',
+                cursor: 'pointer',
+              }}
+              className="roll-up-btn"
+            >
+              ▲ Cuộn lại thư
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
+// THIẾT BỊ NHẬP TÊN (LAPTOP / ĐIỆN THOẠI)
+// ==========================================
+function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void }) {
+  const [typed, setTyped] = useState('')
+  const typedRef = useRef(typed)
+  const [pressedKey, setPressedKey] = useState<string | null>(null)
+  const [cursorVisible, setCursorVisible] = useState(true)
+
+  // State kiểm tra giao diện mobile
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    // Kiểm tra kích thước màn hình lúc mới load và khi resize
+    const checkMobile = () => setIsMobile(window.innerWidth < 640)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
+    typedRef.current = typed
+  }, [typed])
+
+  useEffect(() => {
+    const iv = setInterval(() => setCursorVisible(v => !v), 530)
+    return () => clearInterval(iv)
+  }, [])
+
+  const triggerKey = (key: string) => {
+    setPressedKey(key)
+    setTimeout(() => setPressedKey(null), 130)
+  }
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Backspace') {
+        e.preventDefault()
+        setTyped(p => p.slice(0, -1))
+        triggerKey('⌫')
+      } else if (e.key === 'Enter') {
+        triggerKey('ENTER')
+        if (typedRef.current.trim()) {
+          onSubmit(typedRef.current.trim())
+        }
+      } else if (e.key === ' ') {
+        e.preventDefault()
+        setTyped(p => p.length < 28 ? p + ' ' : p)
+        triggerKey('SPACE')
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+        setTyped(p => p.length < 28 ? p + e.key : p)
+        triggerKey(e.key.toUpperCase())
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onSubmit])
+
+  const handleVKey = (key: string) => {
+    triggerKey(key)
+    if (key === '⌫') {
+      setTyped(p => p.slice(0, -1))
+    } else if (key === 'ENTER') {
+      if (typedRef.current.trim()) {
+        onSubmit(typedRef.current.trim())
+      }
+    } else if (key === 'SPACE') {
+      setTyped(p => p.length < 28 ? p + ' ' : p)
+    } else {
+      setTyped(p => p.length < 28 ? p + key : p)
+    }
+  }
+
+  const rows = [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫'],
+    ['SPACE', 'ENTER'],
+  ]
+
+  const keyStyle = (k: string): React.CSSProperties => {
+    const isEnter = k === 'ENTER'
+    const isSpace = k === 'SPACE'
+    const isBack = k === '⌫'
+    const pressed = pressedKey === k
+    return {
+      // Điều chỉnh width phím linh hoạt hơn cho cả Mobile và PC
+      width: isSpace ? (isMobile ? '120px' : 'clamp(90px,15vw,160px)') : isEnter ? (isMobile ? '80px' : 'clamp(60px,10vw,110px)') : isBack ? (isMobile ? '40px' : 'clamp(36px,6vw,60px)') : (isMobile ? '8vw' : 'clamp(22px,4vw,42px)'),
+      height: isMobile ? '44px' : 'clamp(28px,4.5vw,42px)',
+      borderRadius: '6px',
+      background: pressed
+        ? (isEnter ? 'linear-gradient(135deg,#c9a96e,#2563eb)' : 'rgba(96,165,250,0.3)')
+        : (isEnter ? 'linear-gradient(135deg,rgba(201,169,110,0.2),rgba(37,99,235,0.15))' : 'rgba(22,30,60,0.9)'),
+      border: pressed
+        ? '1px solid rgba(96,165,250,0.7)'
+        : isEnter ? '1px solid rgba(201,169,110,0.35)' : '1px solid rgba(255,255,255,0.07)',
+      color: isEnter ? '#c9a96e' : '#eef0f7',
+      fontSize: isSpace ? '11px' : isBack ? '14px' : '13px',
+      fontFamily: '"Inter", sans-serif',
+      fontWeight: (isEnter || isSpace) ? 700 : 500,
+      cursor: 'pointer',
+      transition: 'all 0.07s',
+      transform: pressed ? 'translateY(2px)' : 'translateY(0)',
+      boxShadow: pressed
+        ? '0 1px 0 rgba(0,0,0,0.6)'
+        : isEnter
+          ? '0 3px 0 rgba(0,0,0,0.5), 0 0 8px rgba(201,169,110,0.1)'
+          : '0 3px 0 rgba(0,0,0,0.5)',
+      letterSpacing: isSpace ? '0.12em' : '0.04em',
+      userSelect: 'none',
+      flexShrink: 0,
+      margin: isMobile ? '2px' : '0', // Thêm margin nhỏ cho mobile dễ bấm
+    }
+  }
+
+  // Khối Component hiển thị màn hình (dùng chung cho cả PC và Mobile)
+  const ScreenContent = () => (
+    <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '60px 20px 20px' : 'clamp(20px,4vw,40px) clamp(16px,3vw,32px)', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <p style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(96,165,250,0.45)', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '6px' }}>&gt; Cho mình biết tên của bạn!</p>
+      <div style={{ minHeight: '85px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
+        {typed ? (
+          <span style={{
+            fontFamily: '"Great Vibes", cursive',
+            fontSize: 'clamp(2.2rem,7vw,4.2rem)',
+            background: 'linear-gradient(135deg,#e8d5a8,#c9a96e,#60a5fa)',
+            backgroundSize: '200% auto',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+            animation: 'shimmerGold 3s linear infinite',
+          }}>
+            {typed}<span style={{ opacity: cursorVisible ? 1 : 0, WebkitTextFillColor: '#60a5fa', fontFamily: 'monospace', fontSize: '0.55em' }}>|</span>
+          </span>
+        ) : (
+          <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '14px', color: 'rgba(238,240,247,0.18)', fontStyle: 'italic' }}>
+            {cursorVisible ? '|' : ' '}
+          </span>
+        )}
+      </div>
+
+      {typed && (
+        <p style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(96,165,250,0.35)', marginTop: '10px' }}>
+          {typed.length}/28 — nhấn ENTER để xác nhận
+        </p>
+      )}
+    </div>
+  )
+
+  return (
+    <div style={{
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'radial-gradient(ellipse at 50% 30%, rgba(37,99,235,0.1) 0%, rgba(8,13,26,0.98) 65%)',
+      padding: '16px', overflow: 'auto',
+    }}>
+
+      {isMobile ? (
+        /* ==========================================
+           GIAO DIỆN ĐIỆN THOẠI (MOBILE VIEW)
+           ========================================== */
+        <div style={{
+          width: '100%', maxWidth: '380px', height: '85vh', maxHeight: '800px',
+          display: 'flex', flexDirection: 'column',
+          background: '#0a1020', borderRadius: '40px',
+          border: '8px solid #1a2542',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.05)',
+          overflow: 'hidden', position: 'relative'
+        }}>
+          {/* Nút sườn điện thoại (Trang trí) */}
+          <div style={{ position: 'absolute', right: '-8px', top: '120px', width: '4px', height: '60px', background: '#1a2542', borderRadius: '0 4px 4px 0' }} />
+          <div style={{ position: 'absolute', left: '-8px', top: '100px', width: '4px', height: '40px', background: '#1a2542', borderRadius: '4px 0 0 4px' }} />
+          <div style={{ position: 'absolute', left: '-8px', top: '150px', width: '4px', height: '40px', background: '#1a2542', borderRadius: '4px 0 0 4px' }} />
+
+          {/* Dynamic Island (Tai thỏ iPhone) */}
+          <div style={{
+            position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)',
+            width: '100px', height: '28px', background: '#000', borderRadius: '20px',
+            zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8px'
+          }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', marginRight: '6px' }} />
+            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#111', border: '1px solid #222' }} />
+          </div>
+
+          {/* Phần Màn hình Điện thoại */}
+          <div style={{
+            flex: 1, background: 'linear-gradient(160deg,#192044 0%,#0d1630 100%)',
+            display: 'flex', flexDirection: 'column', position: 'relative'
+          }}>
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.025) 3px,rgba(0,0,0,0.025) 4px)', pointerEvents: 'none', zIndex: 1 }} />
+            <ScreenContent />
+          </div>
+
+          {/* Bàn phím ảo trên Điện thoại */}
+          <div style={{
+            background: 'rgba(14,21,41,0.95)', backdropFilter: 'blur(10px)',
+            padding: '16px 8px 30px', borderTop: '1px solid rgba(255,255,255,0.05)'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
+              {rows.map((row, ri) => (
+                <div key={ri} style={{ display: 'flex', gap: '4px', justifyContent: 'center', width: '100%' }}>
+                  {row.map(k => (
+                    <button key={k} type="button" onClick={() => handleVKey(k)} style={keyStyle(k)}>
+                      {k === 'SPACE' ? 'SPACE' : k}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      ) : (
+
+        /* ==========================================
+           GIAO DIỆN PC / LAPTOP (Giữ nguyên phong cách cũ)
+           ========================================== */
+        <div style={{ width: '100%', maxWidth: '620px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '11px', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.45)', marginBottom: '20px' }}>🎓 Lễ Tốt Nghiệp 2026</p>
+
+          <div style={{
+            width: '100%', borderRadius: '14px 14px 0 0',
+            background: 'linear-gradient(160deg,#192044 0%,#0d1630 100%)',
+            border: '2px solid rgba(201,169,110,0.2)', borderBottom: 'none',
+            boxShadow: '0 -6px 40px rgba(37,99,235,0.18), inset 0 0 50px rgba(37,99,235,0.04)',
+            overflow: 'hidden', position: 'relative',
+          }}>
+            <div style={{ position: 'absolute', top: '8px', left: '50%', transform: 'translateX(-50%)', width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', zIndex: 5 }} />
+            <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', background: 'rgba(0,0,0,0.22)', borderBottom: '1px solid rgba(255,255,255,0.04)', gap: '7px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ff5f57', boxShadow: '0 0 5px rgba(255,95,87,0.6)' }} />
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#febc2e', boxShadow: '0 0 5px rgba(254,188,46,0.5)' }} />
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#28c840', boxShadow: '0 0 5px rgba(40,200,64,0.5)' }} />            </div>
+            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.025) 3px,rgba(0,0,0,0.025) 4px)', pointerEvents: 'none', zIndex: 1 }} />
+
+            <ScreenContent />
+          </div>
+
+          <div style={{ width: '92%', height: '10px', background: 'linear-gradient(180deg,#151f3e,#0c1228)', borderRadius: '0 0 3px 3px', boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }} />
+
+          <div style={{
+            width: '100%',
+            background: 'linear-gradient(175deg,#141e3c 0%,#0e1529 100%)',
+            borderRadius: '0 0 18px 18px',
+            padding: 'clamp(12px,2vw,20px) clamp(14px,2.5vw,24px) clamp(10px,1.5vw,16px)',
+            border: '1px solid rgba(201,169,110,0.12)', borderTop: 'none',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.55)',
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(4px,0.8vw,7px)', alignItems: 'center' }}>
+              {rows.map((row, ri) => (
+                <div key={ri} style={{ display: 'flex', gap: 'clamp(3px,0.5vw,5px)', justifyContent: 'center' }}>
+                  {row.map(k => (
+                    <button key={k} type="button" onClick={() => handleVKey(k)} style={keyStyle(k)}>
+                      {k === 'SPACE' ? 'SPACE' : k}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div style={{ width: 'clamp(70px,15vw,120px)', height: 'clamp(36px,5vw,48px)', background: 'rgba(18,26,52,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '7px', margin: 'clamp(8px,1.2vw,14px) auto 0', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.4)' }} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ==========================================
+// MAIN PAGE
+// ==========================================
 export default function Home() {
+  // State
   const [guestName, setGuestName] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(true)
-
+  const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(false)
+  const invitationRef = useRef<HTMLDivElement>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-
   const [wishText, setWishText] = useState('')
   const [isWishSent, setIsWishSent] = useState(false)
   const [hearts, setHearts] = useState<{ id: number; left: string }[]>([])
 
-  const [showPrankModal, setShowPrankModal] = useState(false)
-  const [prankStage, setPrankStage] = useState(0)
-  const [noBtnPos, setNoBtnPos] = useState({ top: '50%', left: '70%' })
-
   const [isPreloaderComplete, setIsPreloaderComplete] = useState(false)
-  const sectionRef = useRef<HTMLElement | null>(null)
-  const countdownSectionRef = useRef<HTMLElement | null>(null)
-  const iconRefs = useRef<(ArrowRightIconHandle | null)[]>([])
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null)
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set())
 
-  // ==========================================
-  // STATE & REFS CHO CAMERA
-  // ==========================================
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const [capturedImage, setCapturedImage] = useState<string | null>(null)
 
+  const cardPreviewRef = useRef<InteractiveCardPreviewRef>(null)
+
+
+
+  // Init audio
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const audio = new Audio('/nhac-nen.mp3')
@@ -75,681 +878,497 @@ export default function Home() {
     }
   }, [])
 
-  const handlePreloaderComplete = () => {
-    setIsPreloaderComplete(true)
+  // Scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setVisibleSections(prev => new Set(prev).add(entry.target.id))
+          }
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+    )
+
+    const sections = document.querySelectorAll('[data-animate-section]')
+    sections.forEach(section => observer.observe(section))
+
+    return () => observer.disconnect()
+  }, [isModalOpen])
+
+  const isSectionVisible = (id: string) => visibleSections.has(id)
+
+  // Handlers
+  const handlePreloaderComplete = () => setIsPreloaderComplete(true)
+
+  const handleEnterInvitation = (name: string) => {
+    setGuestName(name)
+    setIsModalOpen(false)
+    setShowWelcomeOverlay(true)
   }
 
-  const handleEnterInvitation = () => {
-    setIsModalOpen(false);
+  const handleStartInvitation = () => {
+    setShowWelcomeOverlay(false)
+    const duration = 3000
+    const animationEnd = Date.now() + duration
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 }
+    const r = (min: number, max: number) => Math.random() * (max - min) + min
 
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
-    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now()
+      if (timeLeft <= 0) return clearInterval(interval)
+      const particleCount = 50 * (timeLeft / duration)
+      confetti({ ...defaults, particleCount, origin: { x: r(0.1, 0.3), y: Math.random() - 0.2 }, colors: ['#c9a96e', '#2563eb', '#60a5fa', '#e8d5a8'] })
+      confetti({ ...defaults, particleCount, origin: { x: r(0.7, 0.9), y: Math.random() - 0.2 }, colors: ['#c9a96e', '#2563eb', '#60a5fa', '#e8d5a8'] })
+    }, 250)
 
-    const interval: any = setInterval(function () {
-      const timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) return clearInterval(interval);
-      const particleCount = 50 * (timeLeft / duration);
-      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-      confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-    }, 250);
-
-    if (audioRef.current) {
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch(err => console.warn("Lỗi phát nhạc:", err));
-    }
+    audioRef.current?.play().then(() => setIsPlaying(true)).catch(err => console.warn("Lỗi phát nhạc:", err))
   }
 
   const handleSendWish = async () => {
-    if (!wishText.trim()) return;
-    setIsWishSent(true);
-    const newHearts = Array.from({ length: 15 }).map((_, i) => ({
-      id: Date.now() + i,
-      left: `${Math.random() * 80 + 10}%`
-    }));
-    setHearts(newHearts);
-    setTimeout(() => setHearts([]), 3000);
+    if (!wishText.trim()) return
+    setIsWishSent(true)
+    setHearts(Array.from({ length: 15 }).map((_, i) => ({ id: Date.now() + i, left: `${Math.random() * 80 + 10}%` })))
+    setTimeout(() => setHearts([]), 3000)
 
     try {
-      const formspreeUrl = "https://formspree.io/f/xvzdogzq";
-      await fetch(formspreeUrl, {
+      await fetch(process.env.NEXT_PUBLIC_FORMSPREE_URL!, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          Người_gửi: guestName,
-          Lời_chúc: wishText,
-          Thời_gian: new Date().toLocaleString('vi-VN')
-        })
-      });
-    } catch (error) {
-      console.error("Lỗi gửi lời chúc:", error);
-    }
+        body: JSON.stringify({ Người_gửi: guestName, Lời_chúc: wishText, Thời_gian: new Date().toLocaleString('vi-VN') })
+      })
+    } catch (error) { console.error("Lỗi gửi lời chúc:", error) }
   }
 
-  const handleMoveNoBtn = () => {
-    const randomTop = Math.floor(Math.random() * 70) + 10;
-    const randomLeft = Math.floor(Math.random() * 70) + 10;
-    setNoBtnPos({ top: `${randomTop}%`, left: `${randomLeft}%` });
+  const handleDownloadCard = () => {
+    const link = document.createElement('a')
+    link.href = '/thiep-moi.png'
+    link.download = `Thiep_Moi_Tot_Nghiep_${guestName || 'Khach'}.png`
+    link.target = '_blank'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
+
+
+
+
 
   // ==========================================
-  // HÀM XỬ LÝ CAMERA (ĐÃ ÁP DỤNG THIẾT QUÂN LUẬT)
+  // RENDER
   // ==========================================
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setCapturedImage(null);
-    } catch (err) {
-      console.error("Lỗi camera:", err);
-      // CẢNH BÁO VÀ KHÓA LẠI: Không setPrankStage(4) nữa
-      alert("📸 BẮT BUỘC: Bạn phải cho phép truy cập Camera và chụp ảnh xác nhận để 'điểm danh' thì mới nhận được thiệp mời nha!");
-    }
-  };
-
-  // 🔴 THUẬT TOÁN CHỐNG MÉO HÌNH: CẮT VIDEO VÀO CANVNAS VUÔNG CHUẨN XÁC
-  const takePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      if (context) {
-        const canvas = canvasRef.current;
-
-        // 1. Ép cứng kích thước Canvas chuẩn vuông (900x900) cho sắc nét
-        const TARGET_SIZE = 900;
-        canvas.width = TARGET_SIZE;
-        canvas.height = TARGET_SIZE;
-
-        // Lấy kích thước thật của Camera
-        const video = videoRef.current;
-        const videoW = video.videoWidth;
-        const videoH = video.videoHeight;
-
-        // Tính toán để cắt video cho vừa canvas vuông mà không bị méo (giống object-fit: cover)
-        let drawW, drawH, offsetX, offsetY;
-        const videoRatio = videoW / videoH;
-        const canvasRatio = 1; // Vì TARGET_SIZE / TARGET_SIZE = 1
-
-        if (videoRatio > canvasRatio) {
-          // Video ngang hơn canvas
-          drawH = TARGET_SIZE;
-          drawW = TARGET_SIZE * videoRatio;
-          offsetY = 0;
-          offsetX = (TARGET_SIZE - drawW) / 2;
-        } else {
-          // Video dọc hơn canvas
-          drawW = TARGET_SIZE;
-          drawH = TARGET_SIZE / videoRatio;
-          offsetX = 0;
-          offsetY = (TARGET_SIZE - drawH) / 2;
-        }
-
-        // Lật canvas theo chiều ngang để có hiệu ứng gương cho video selfie
-        context.translate(canvas.width, 0);
-        context.scale(-1, 1);
-
-        // 💄 THÊM BEAUTY FILTER (Nét và Sáng da - tùy chọn)
-        context.filter = 'brightness(110%) contrast(110%) saturate(120%)';
-
-        // Vẽ video vào canvas bằng thuật toán crop
-        context.drawImage(video, offsetX, offsetY, drawW, drawH);
-
-        // 2. Reset transform về mặc định (ĐÚNG ĐỂ VẼ KHUNG ẢNH KHÔNG BỊ LẬT NGƯỢC CHỮ)
-        context.filter = 'none'; // Tắt beauty filter cho khung ảnh
-        context.setTransform(1, 0, 0, 1, 0, 0);
-
-        // 3. Tải khung ảnh lên và ghép vào
-        const frameImg = new window.Image();
-        frameImg.src = '/khung-anh.png';
-
-        frameImg.onload = () => {
-          // Vẽ khung ảnh đè lên, co giãn cho vừa khít canvas 900x900
-          context.drawImage(frameImg, 0, 0, canvas.width, canvas.height);
-          setCapturedImage(canvas.toDataURL('image/png'));
-          stopCamera();
-        };
-
-        frameImg.onerror = () => {
-          setCapturedImage(canvas.toDataURL('image/png'));
-          stopCamera();
-        }
-      }
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-      videoRef.current.srcObject = null;
-    }
-  };
-
-  // 🔴 HÀM UPLOAD ẢNH NGẦM LÊN IMGBB VÀ GỬI EMAIL
-  const uploadAndSendSelfie = async (base64Img: string) => {
-    try {
-      const base64Data = base64Img.split(',')[1];
-      const formData = new FormData();
-      formData.append('image', base64Data);
-
-      const IMGBB_API_KEY = "893b173d13fa2f9ae361c32df4e648c3";
-
-      const imgbbResponse = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-      });
-      const imgbbData: any = await imgbbResponse.json();
-
-      if (imgbbData.success) {
-        const imageUrl = imgbbData.data.url;
-
-        await fetch("https://formspree.io/f/xvzdogzq", {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            Tiêu_đề: "🚨 CÓ ĐỨA XÁC NHẬN ĐI DỰ TỐT NGHIỆP!",
-            Người_gửi: guestName,
-            Link_Ảnh_Chụp_Lén: imageUrl,
-            Thời_gian: new Date().toLocaleString('vi-VN')
-          })
-        });
-      }
-    } catch (err) {
-      console.error("Lỗi gửi ảnh ngầm:", err);
-    }
-  };
-
-  // 🔒 CHỐT CHẶN BẢO MẬT: XỬ LÝ CHUYỂN BƯỚC
-  const handleNextPrank = () => {
-    if (prankStage === 2) {
-      setPrankStage(3);
-      setTimeout(startCamera, 300);
-    } else if (prankStage === 3) {
-      // KIỂM TRA: Chưa chụp ảnh thì không cho qua Stage 4
-      if (!capturedImage) {
-        alert("Bạn chưa chụp ảnh xác nhận mà! Bấm nút chụp ở dưới đi đã nào 📸");
-        return;
-      }
-      setPrankStage(4);
-    } else if (prankStage < 4) {
-      setPrankStage(prankStage + 1);
-    } else {
-      // CHỐT CUỐI: Đề phòng rủi ro, kiểm tra ảnh lần cuối trước khi cho tải thiệp
-      if (!capturedImage) {
-        alert("Lỗi: Không tìm thấy ảnh bằng chứng. Vui lòng quay lại chụp ảnh!");
-        setPrankStage(3);
-        startCamera();
-        return;
-      }
-
-      // 1. TẢI THIỆP
-      const link = document.createElement('a');
-      link.href = '/thiep-moi.png';
-      link.download = `Thiep_Moi_Tot_Nghiep_${guestName || 'Khach'}.png`;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      // 🔴 2. KÍCH HOẠT QUÁ TRÌNH GỬI ẢNH NGẦM
-      uploadAndSendSelfie(capturedImage);
-
-      setShowPrankModal(false);
-      stopCamera();
-      setTimeout(() => {
-        setPrankStage(0);
-        setCapturedImage(null);
-      }, 500);
-    }
-  }
-
-  const prankContent = [
-    { text: "Nhớ đi nha! Không đi là tới công chuyện đó! 😡", img: null },
-    { text: "Uy tín nha! Chuẩn bị quà bự bự đi là vừa! 🎁", img: "/qr.jpg" },
-    { text: "Đừng có bùng kèo phút chót nha bạn đẹp trai xinh gái gì đó ơi! 🔪", img: "/image7.png" },
-    { text: "Để chắc chắn, hãy selfie 1 tấm làm bằng chứng sẽ tới dự nào! 📸", img: null },
-    { text: "Đã lưu bằng chứng! Khỏi chối nha! Tải thiệp nè! Mãi iu ❤️", img: "/image7.jpg" },
-  ]
-
-  useRotateReveal({
-    isActive: isPreloaderComplete,
-    rootRef: sectionRef,
-    selector: '[data-rotate-reveal]',
-    duration: 2,
-    delay: 0.8,
-    initialRotate: 60,
-    initialOpacity: 0,
-    transformOrigin: 'bottom left',
-    ease: 'power3.out',
-    stagger: 0.1,
-    perspective: 2000,
-  })
-
-  useRotateReveal({
-    isActive: isPreloaderComplete,
-    rootRef: countdownSectionRef,
-    selector: '[data-rotate-reveal]',
-    duration: 2,
-    delay: 1.2,
-    initialRotate: 60,
-    initialOpacity: 0,
-    transformOrigin: 'bottom left',
-    ease: 'power3.out',
-    stagger: 0.1,
-    perspective: 2000,
-  })
-
   return (
     <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Great+Vibes&display=swap');
-        @keyframes floatUp {
-          0% { transform: translateY(0) scale(1); opacity: 1; }
-          100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
-        }
-        .flying-heart { animation: floatUp 2s ease-out forwards; }
-        @keyframes spinRecord { 100% { transform: rotate(360deg); } }
-        .spin-slow { animation: spinRecord 4s linear infinite; }
-      `}} />
-
-      {!isModalOpen && (
-        <button
+      <ParticleCanvas />
+      {/* AUDIO VISUALIZER BUTTON */}
+      {!isModalOpen && !showWelcomeOverlay && (
+        <AudioVisualizer
+          isPlaying={isPlaying}
           onClick={() => {
-            if (isPlaying) audioRef.current?.pause();
-            else audioRef.current?.play();
-            setIsPlaying(!isPlaying);
+            if (isPlaying) audioRef.current?.pause()
+            else audioRef.current?.play()
+            setIsPlaying(!isPlaying)
           }}
-          className="fixed bottom-6 left-6 z-[999] bg-[#1a1a1a] border-2 border-[#f2ebd9] rounded-full p-3 shadow-xl transition-transform hover:scale-110"
-        >
-          <div className={cn("text-2xl", isPlaying && "spin-slow")}>
-            {isPlaying ? "💿" : "🔇"}
-          </div>
-        </button>
+        />
       )}
 
-      {/* POPUP NHẬP TÊN */}
+      {/* LAPTOP KEYBOARD MODAL */}
       {isModalOpen && (
-        <div
-          style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.95)'
+        <LaptopKeyboardModal
+          onSubmit={(name) => {
+            handleEnterInvitation(name)
           }}
-        >
+        />
+      )}
+
+      {/* WELCOME OVERLAY */}
+      {showWelcomeOverlay && (
+        <WelcomeOverlay
+          guestName={guestName}
+          backgroundRef={invitationRef}
+          onClose={handleStartInvitation}
+        />
+      )}
+
+
+
+      {/* LIGHTBOX */}
+      {lightboxImg && (
+        <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99990, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(8,13,26,0.95)', cursor: 'zoom-out', padding: '20px' }}>
+          <img src={lightboxImg} alt="Preview" style={{ maxWidth: '90%', maxHeight: '85vh', objectFit: 'contain', borderRadius: '16px', border: '1px solid rgba(201,169,110,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} />
+        </div>
+      )}
+
+      {/* MAIN CONTENT (with click-to-firework) */}
+      <Wrapper theme="light" className="overflow-x-clip z-10" onPreloaderComplete={handlePreloaderComplete}>
+        {!isModalOpen && guestName && (
           <div
+            ref={invitationRef}
             style={{
-              backgroundColor: '#1c1c1c', padding: '40px 32px', borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.1)', width: '90%', maxWidth: '400px',
-              textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', boxSizing: 'border-box'
+              position: 'relative',
+              zIndex: 1,
+              filter: showWelcomeOverlay ? 'blur(12px)' : 'none',
+              WebkitFilter: showWelcomeOverlay ? 'blur(12px)' : 'none',
+              transform: showWelcomeOverlay ? 'scale(1.03)' : 'scale(1)',
+              opacity: showWelcomeOverlay ? 0.5 : 1,
+              transition: 'filter 0.8s ease-out, -webkit-filter 0.8s ease-out, transform 0.8s ease-out, opacity 0.8s ease-out',
+            }}
+            onClick={(e) => {
+              // Click-to-firework: click anywhere to launch fireworks
+              const target = e.target as HTMLElement
+              if (target.tagName === 'BUTTON' || target.tagName === 'A' || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('button') || target.closest('a')) return
+              const x = e.clientX / window.innerWidth
+              const y = e.clientY / window.innerHeight
+              confetti({
+                particleCount: 30, spread: 60, startVelocity: 20,
+                origin: { x, y }, colors: ['#c9a96e', '#2563eb', '#60a5fa', '#e8d5a8'],
+                gravity: 0.8, ticks: 80, zIndex: 99999,
+              })
             }}
           >
-            <h2 className="font-chalmers text-primary" style={{ fontSize: '28px', color: '#f5f5f5', margin: '0 0 24px 0' }}>
-              Bạn tên là gì nhỉ?
-            </h2>
-            <input
-              type="text"
-              value={guestName}
-              onChange={(e) => setGuestName(e.target.value)}
-              placeholder="Nhập tên của bạn..."
+
+            {/* ===== HERO SECTION ===== */}
+            <section
+              id="hero" data-animate-section
               style={{
-                width: '100%', padding: '16px', backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.2)', borderRadius: '8px', color: '#fff',
-                outline: 'none', fontSize: '16px', boxSizing: 'border-box', marginBottom: '20px'
-              }}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && guestName.trim() !== "") handleEnterInvitation();
-              }}
-            />
-            <button
-              onClick={handleEnterInvitation}
-              disabled={!guestName.trim()}
-              style={{
-                width: '100%', padding: '16px', backgroundColor: guestName.trim() ? '#fff' : '#444',
-                color: guestName.trim() ? '#000' : '#888', borderRadius: '8px', fontWeight: 'bold',
-                fontSize: '18px', cursor: guestName.trim() ? 'pointer' : 'not-allowed', border: 'none', boxSizing: 'border-box'
+                minHeight: '100vh', display: 'flex', flexDirection: 'column',
+                alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+                padding: '40px 20px', position: 'relative',
+                opacity: isSectionVisible('hero') ? 1 : 0,
+                transform: isSectionVisible('hero') ? 'translateY(0)' : 'translateY(40px)',
+                transition: 'all 1s ease-out',
               }}
             >
-              Xem thiệp mời
-            </button>
-          </div>
-        </div>
-      )}
+              <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', letterSpacing: '0.35em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.6)', marginBottom: '20px' }}>
+                Lễ Tốt Nghiệp 2026
+              </p>
 
-      {/* POPUP TROLL & CHỤP ẢNH */}
-      {showPrankModal && (
-        <div
-          style={{
-            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99998,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.95)'
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#1c1c1c', padding: '40px 32px', borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.1)', width: '90%', maxWidth: '450px',
-              textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', boxSizing: 'border-box'
-            }}
-          >
-            {/* Hiển thị Ảnh Meme */}
-            {prankStage !== 3 && prankStage > 0 && prankContent[prankStage].img && (
-              <img
-                src={prankContent[prankStage].img!}
-                alt="Funny meme"
-                style={{ width: '100%', maxHeight: '250px', objectFit: 'contain', borderRadius: '8px', marginBottom: '24px' }}
-              />
-            )}
+              <h1 style={{
+                fontFamily: '"Playfair Display", serif', fontWeight: 700,
+                fontSize: 'clamp(2.5rem, 8vw, 5.5rem)', lineHeight: 1.1,
+                marginBottom: '16px',
+                background: 'linear-gradient(135deg, #e8d5a8 0%, #c9a96e 40%, #60a5fa 70%, #c9a96e 100%)',
+                backgroundSize: '300% auto',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                animation: 'shimmerGold 4s linear infinite',
+              }}>
+                Hùng Anh
+              </h1>
 
-            {/* Hiển thị Camera (chỉ ở Stage 3) */}
-            {prankStage === 3 && (
-              <div style={{ marginBottom: '24px', position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', aspectRatio: '1/1' }}>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: capturedImage ? 'none' : 'block', transform: 'scaleX(-1)' }}
-                />
+              <div style={{ width: '80px', height: '2px', background: 'linear-gradient(90deg, #2563eb, #c9a96e)', margin: '0 auto 24px', borderRadius: '2px' }} />
 
-                {/* HIỂN THỊ KHUNG ẢNH LÚC ĐANG SOI CAM */}
-                {!capturedImage && (
-                  <img
-                    src="/khung-anh.png"
-                    alt="Khung hình"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none', objectFit: 'fill' }}
-                  />
-                )}
+              <p style={{
+                fontFamily: '"Inter", sans-serif', fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
+                color: '#eef0f7', maxWidth: '600px', lineHeight: 1.7, marginBottom: '10px',
+              }}>
+                Xin chào, <span style={{ fontFamily: '"Great Vibes", cursive', fontSize: '1.8em', color: '#c9a96e' }}>{guestName}</span>
+              </p>
 
-                {/* HIỂN THỊ ẢNH ĐÃ CHỤP */}
-                {capturedImage && (
-                  <img src={capturedImage} alt="Captured" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                )}
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
+              <p style={{ fontFamily: '"Inter", sans-serif', fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', color: 'rgba(238,240,247,0.65)', maxWidth: '550px', lineHeight: 1.8, marginBottom: '40px' }}>
+                Sau một hành trình dài với nhiều kỷ niệm và cố gắng, mình rất vui khi được chia sẻ khoảnh khắc đặc biệt này cùng bạn.
+              </p>
+
+              <style dangerouslySetInnerHTML={{
+                __html: `
+                @keyframes scanlineTech {
+                  0% { background-position: 0% -100%; }
+                  100% { background-position: 0% 200%; }
+                }
+              `}} />
+              <div style={{
+                position: 'relative', width: '90%', maxWidth: '340px', aspectRatio: '340 / 476',
+                borderRadius: '170px 170px 20px 20px', overflow: 'hidden',
+                border: '2px solid rgba(201,169,110,0.3)',
+                boxShadow: '0 20px 60px rgba(37,99,235,0.15), 0 0 80px rgba(201,169,110,0.08), inset 0 0 40px rgba(37,99,235,0.2)',
+                margin: '0 auto'
+              }}>
+                {/* Tech HUD Corners */}
+                <div style={{ position: 'absolute', bottom: '15px', left: '15px', width: '25px', height: '25px', borderBottom: '3px solid rgba(96,165,250,0.8)', borderLeft: '3px solid rgba(96,165,250,0.8)', zIndex: 10, borderRadius: '0 0 0 6px' }} />
+                <div style={{ position: 'absolute', bottom: '15px', right: '15px', width: '25px', height: '25px', borderBottom: '3px solid rgba(96,165,250,0.8)', borderRight: '3px solid rgba(96,165,250,0.8)', zIndex: 10, borderRadius: '0 0 6px 0' }} />
+
+                {/* Scanning Laser Line */}
+                <div style={{
+                  position: 'absolute', top: 0, left: 0, right: 0, height: '100%',
+                  background: 'linear-gradient(to bottom, transparent 0%, rgba(96,165,250,0.1) 10%, rgba(96,165,250,0.6) 50%, rgba(96,165,250,0.1) 90%, transparent 100%)',
+                  backgroundSize: '100% 15%', backgroundRepeat: 'no-repeat',
+                  animation: 'scanlineTech 3s ease-in-out infinite', zIndex: 5, pointerEvents: 'none',
+                }} />
+                {/* Image */}
+                <img src="/image9.png" alt="Graduation" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-            )}
 
-            <h3 className="font-chalmers text-primary" style={{ fontSize: '24px', color: '#fff', lineHeight: '1.5', margin: '0 0 24px 0' }}>
-              {prankContent[prankStage].text}
-            </h3>
-
-            {/* Render các nút tùy theo giai đoạn */}
-            {prankStage === 0 ? (
-              <div style={{ position: 'relative', height: '100px', width: '100%' }}>
-                <button
-                  onClick={handleNextPrank}
-                  style={{ position: 'absolute', top: '50%', left: '30%', transform: 'translate(-50%, -50%)', padding: '14px 28px', backgroundColor: '#fff', color: '#000', borderRadius: '8px', fontWeight: 'bold', fontSize: '16px', border: 'none', cursor: 'pointer', zIndex: 10 }}
-                >
-                  Biết rồi!
-                </button>
-                <button
-                  onMouseEnter={handleMoveNoBtn}
-                  onClick={handleMoveNoBtn}
-                  style={{ position: 'absolute', top: noBtnPos.top, left: noBtnPos.left, transform: 'translate(-50%, -50%)', padding: '14px 28px', backgroundColor: '#333', color: '#fff', borderRadius: '8px', fontWeight: 'bold', fontSize: '16px', border: '1px solid #555', cursor: 'pointer', transition: 'all 0.2s ease-out' }}
-                >
-                  Không!
-                </button>
+              <div style={{ marginTop: '60px', animation: 'floatSlow 3s ease-in-out infinite' }}>
+                <span style={{ fontSize: '14px', color: 'rgba(96,165,250,0.4)', letterSpacing: '0.2em', fontFamily: '"Inter", sans-serif' }}>CUỘN XUỐNG</span>
+                <div style={{ marginTop: '8px', width: '1px', height: '40px', background: 'linear-gradient(to bottom, rgba(96,165,250,0.3), transparent)', margin: '8px auto 0' }} />
               </div>
-            ) : prankStage === 3 ? (
-              /* NÚT BẤM KHI Ở BƯỚC CAMERA ĐÃ BỊ KHÓA LẠI */
-              <>
-                {!capturedImage ? (
-                  <button onClick={takePhoto} style={{ width: '100%', padding: '16px', backgroundColor: '#ea580c', color: '#fff', borderRadius: '8px', fontWeight: 'bold', fontSize: '18px', border: 'none', cursor: 'pointer' }}>
-                    📸 Bấm chụp xác nhận (Bắt buộc)
-                  </button>
-                ) : (
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => { setCapturedImage(null); startCamera(); }} style={{ flex: 1, padding: '16px', backgroundColor: '#444', color: '#fff', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
-                      🔄 Chụp lại
-                    </button>
-                    <button onClick={handleNextPrank} style={{ flex: 1, padding: '16px', backgroundColor: '#fff', color: '#000', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer', fontSize: '16px' }}>
-                      Tiếp tục 👉
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <button
-                onClick={handleNextPrank}
-                style={{ width: '100%', padding: '16px', backgroundColor: '#fff', color: '#000', borderRadius: '8px', fontWeight: 'bold', fontSize: '18px', border: 'none', cursor: 'pointer', boxSizing: 'border-box' }}
-              >
-                {prankStage === 4 ? "Tải thiệp nè!" : "Tiếp tục"}
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+            </section>
 
-      {/* GIAO DIỆN CHÍNH */}
-      <Wrapper theme="light" className="px-safe overflow-x-clip z-10" onPreloaderComplete={handlePreloaderComplete}>
-        <section ref={sectionRef} className="relative coi-grid!">
-          <h1 className="col-span-full coi-pt-20 bg-secondary coi-pl-4 dt:coi-pl-10 uppercase home-title text-primary relative z-10 overflow-hidden">
-            <RotateRevealText>Final Chapter!</RotateRevealText>
-          </h1>
+            {/* ===== COUNTDOWN ===== */}
+            <section
+              id="countdown" data-animate-section
+              style={{
+                padding: '80px 20px', textAlign: 'center',
+                opacity: isSectionVisible('countdown') ? 1 : 0,
+                transform: isSectionVisible('countdown') ? 'translateY(0)' : 'translateY(40px)',
+                transition: 'all 0.8s ease-out 0.2s',
+              }}
+            >
+              <div className="section-divider" style={{ marginBottom: '60px' }} />
+              <p style={{ fontFamily: '"Inter", sans-serif', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: '12px', color: 'rgba(96,165,250,0.5)', marginBottom: '12px' }}>Đếm ngược</p>
+              <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 600, marginBottom: '40px' }} className="gold-text">
+                Sự kiện đã diễn ra!
+              </h2>
+              <CountdownBanner targetDate={TARGET_DATE} isActive={isPreloaderComplete} />
+            </section>
 
-          {!isModalOpen && guestName && (
-            <div className="col-span-full bg-secondary coi-pl-4 pr-4 dt:coi-pl-10 dt:pr-8 py-6 dt:py-10 flex flex-col dt:flex-row items-center dt:items-start justify-between gap-8 dt:gap-12 relative z-10">
+            {/* ===== EVENT DETAILS ===== */}
+            <section
+              id="event" data-animate-section
+              style={{
+                padding: '60px 20px 80px', maxWidth: '800px', margin: '0 auto',
+                opacity: isSectionVisible('event') ? 1 : 0,
+                transform: isSectionVisible('event') ? 'translateY(0)' : 'translateY(40px)',
+                transition: 'all 0.8s ease-out 0.2s',
+              }}
+            >
+              <div className="section-divider" style={{ marginBottom: '60px' }} />
+              <div className="glass-card" style={{ padding: 'clamp(28px, 5vw, 48px)', textAlign: 'center' }}>
+                <p style={{ fontFamily: '"Inter", sans-serif', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: '11px', color: 'rgba(96,165,250,0.5)', marginBottom: '20px' }}>Chi tiết sự kiện</p>
+                <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.8rem, 5vw, 3rem)', fontWeight: 600, marginBottom: '28px' }} className="gold-text">
+                  Lễ Tốt Nghiệp
+                </h2>
 
-              {/* PHẦN CHỮ (Điện thoại nằm dưới, PC nằm trái) */}
-              <div className="w-full dt:w-[65%] order-2 dt:order-1 text-left">
-                <RotateRevealText
-                  as="div"
-                  className="text-primary font-chalmers"
-                  style={{ fontSize: '2.0rem', lineHeight: '1.6', letterSpacing: '0.5px' }}
-                >
-                  <p style={{ marginBottom: '20px', fontSize: '1.8rem' }}>
-                    Xin chào,{' '}
-                    <span
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '24px', marginBottom: '28px' }}>
+                  {[
+                    { icon: '📅', label: 'Ngày', value: 'Thứ Bảy, 20/06/2026' },
+                    { icon: '⏰', label: 'Giờ', value: '14:30 - 16:00 chiều' },
+                    { icon: '🏫', label: 'Địa điểm', value: 'Đại học Nguyễn Tất Thành (NTTU) Cơ sở Quận 12' },
+                  ].map((item) => (
+                    <div key={item.label} style={{
+                      padding: '20px', borderRadius: '16px',
+                      background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(37,99,235,0.1)',
+                    }}>
+                      <div style={{ fontSize: '28px', marginBottom: '8px' }}>{item.icon}</div>
+                      <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '11px', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.5)', marginBottom: '6px' }}>{item.label}</p>
+                      <p style={{ fontFamily: '"Playfair Display", serif', fontSize: '15px', color: '#e8d5a8', fontWeight: 500 }}>{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
+                  {CONTACT_LINKS.map((link) => (
+                    <a key={link.label} href={link.href} target={link.isExternal ? '_blank' : undefined} rel={link.isExternal ? 'noopener noreferrer' : undefined}
                       style={{
-                        color: '#FFf',
-                        fontWeight: 'bold',
-                        fontFamily: '"Great Vibes", cursive',
-                        fontSize: '2.5rem'
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                        padding: '14px 20px', borderRadius: '12px',
+                        background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(201,169,110,0.15)',
+                        color: '#eef0f7', fontFamily: '"Inter", sans-serif', fontSize: '14px',
+                        textDecoration: 'none', transition: 'all 0.3s',
                       }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(37,99,235,0.2)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,169,110,0.4)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(37,99,235,0.08)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,169,110,0.15)' }}
                     >
-                      {guestName}
-                    </span>
-                  </p>
-                  <p style={{ marginBottom: '16px' }}>
-                    Sau một hành trình dài với nhiều kỷ niệm và cố gắng, mình rất vui khi được chia sẻ khoảnh khắc đặc biệt này cùng bạn.
-                  </p>
-                  <p>
-                    Hy vọng <span
-                      style={{
-                        color: '#FFf',
-                        fontWeight: 'bold',
-                        fontFamily: '"Great Vibes", cursive',
-                        fontSize: '2.5rem'
-                      }}
-                    >
-                      {guestName}
-                    </span> sẽ đến và cùng mình lưu lại một dấu ấn đáng nhớ trong ngày tốt nghiệp ❤️
-                  </p>
-                </RotateRevealText>
-              </div>
-
-              {/* PHẦN HÌNH ẢNH (Điện thoại nằm trên căn giữa, PC nằm phải) */}
-              <div className="w-full order-1 dt:order-2 flex justify-center items-center dt:w-[45%] dt:ml-auto">
-                <div className="w-[85%] sm:w-[75%] dt:w-full flex justify-center">
-                  <Image
-                    src="/image9.png"
-                    alt="Thank you portrait"
-                    className="w-full rounded-xl"
-                    aspectRatio={3 / 4}
-                    priority
-                    mobileSize="100vw"
-                    desktopSize="45vw"
-                    style={{ border: 'none', margin: '0 auto' }}
-                  />
+                      <span>{link.icon}</span>
+                      <span>{link.label}</span>
+                      <span style={{ marginLeft: 'auto', opacity: 0.4 }}>→</span>
+                    </a>
+                  ))}
                 </div>
               </div>
+            </section>
 
-            </div>
-          )}
-          <div className="col-span-full coi-py-10 dt:coi-py-10 bg-contrast border-solid coi-border-t-px coi-border-b-px border-secondary [border-top-style:solid] [border-bottom-style:solid] relative overflow-hidden">
-            <CountdownBanner targetDate={TARGET_DATE} isActive={isPreloaderComplete} />
-          </div>
+            {/* ===== GALLERY ===== */}
+            <section
+              id="gallery" data-animate-section
+              style={{
+                padding: '40px 20px 80px', maxWidth: '1000px', margin: '0 auto',
+                opacity: isSectionVisible('gallery') ? 1 : 0,
+                transform: isSectionVisible('gallery') ? 'translateY(0)' : 'translateY(40px)',
+                transition: 'all 0.8s ease-out 0.2s',
+              }}
+            >
+              <div className="section-divider" style={{ marginBottom: '60px' }} />
+              <p style={{ fontFamily: '"Inter", sans-serif', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: '12px', color: 'rgba(96,165,250,0.5)', marginBottom: '12px', textAlign: 'center' }}>Kỷ niệm</p>
+              <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 600, marginBottom: '40px', textAlign: 'center' }} className="gold-text">
+                Những Khoảnh Khắc
+              </h2>
 
-          <div className="relative mobile-only col-span-full coi-mt-24">
-            <h1 className="uppercase h2 font-chalmers">
-              <RotateRevealText>Graduation</RotateRevealText>
-            </h1>
-            <div className="-z-1 absolute top-0 left-0 w-full h-full">
-              <div className="dt:coi-w-480 coi-w-342 coi-h-px bg-contrast/20 dt:coi-mt-40 coi-mt-50 relative" />
-            </div>
-          </div>
-
-          <div className="col-span-full dt:col-start-1 dt:col-span-3 coi-mt-30 dt:coi-border-r-px dt:border-secondary dt:[border-right-style:solid] order-2 dt:order-0">
-            <div className="relative desktop-only">
-              <h1 className="uppercase h2 coi-mb-24 font-chalmers">
-                <RotateRevealText>Graduation</RotateRevealText>
-              </h1>
-              <div className="-z-1 absolute top-0 left-0 w-full h-full">
-                <div className="dt:coi-w-480 coi-w-342 coi-h-px bg-contrast/20 dt:coi-mt-40 coi-mt-50 relative" />
-              </div>
-            </div>
-            <div>
-              <Image src="/image5.png" alt="Graduation Left" className="border-solid coi-border-px border-secondary" aspectRatio={53 / 68} mobileSize="130vw" priority desktopSize="33vw" />
-            </div>
-            <p className="cta font-chalmers uppercase coi-mt-30 flex items-center gap-10">
-              <RotateRevealText>✦✦✦ Find me here</RotateRevealText>
-            </p>
-            <div className="flex flex-col dt:coi-gap-30 coi-gap-15 coi-mt-32 uppercase">
-              {CONTACT_LINKS.map(
-                ({ label, href, ariaLabel, borderSecondary, isExternal }, index) => (
-                  <RotateRevealText
-                    key={label} as="a" href={href} aria-label={ariaLabel} target={isExternal ? '_blank' : undefined} rel={isExternal ? 'noopener noreferrer' : undefined}
-                    className={cn('contact coi-border-b-px [border-bottom-style:solid] flex items-center justify-between gap-16 group', borderSecondary ? 'border-secondary' : undefined)}
-                    onMouseEnter={() => iconRefs.current[index]?.startAnimation()}
-                    onMouseLeave={() => iconRefs.current[index]?.stopAnimation()}
-                    onFocus={() => iconRefs.current[index]?.startAnimation()}
-                    onBlur={() => iconRefs.current[index]?.stopAnimation()}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(250px, 100%), 1fr))',
+                gap: '16px',
+              }}>
+                {GALLERY_IMAGES.map((img) => (
+                  <div key={img.src} onClick={() => setLightboxImg(img.src)} style={{
+                    borderRadius: '16px', overflow: 'hidden', cursor: 'zoom-in',
+                    aspectRatio: '3/4',
+                    border: '1px solid rgba(201,169,110,0.1)',
+                    transition: 'all 0.4s', position: 'relative',
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(37,99,235,0.4)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,169,110,0.1)' }}
                   >
-                    <span>{label}</span>
-                    <ArrowRightIcon ref={(handle) => { iconRefs.current[index] = handle }} aria-hidden="true" className="shrink-0 transition-transform duration-200 group-hover:translate-x-1 group-focus-visible:translate-x-1" />
-                  </RotateRevealText>
-                )
-              )}
-            </div>
-          </div>
-          <div className="col-span-full dt:coi-ml-20 coi-ml-0 dt:col-start-4 dt:col-span-5 coi-mt-30 order-1 dt:order-0">
-            <div>
-              <Image src="/image13.png" alt="Graduation Right" className="w-full border-solid coi-border-px border-secondary" aspectRatio={47 / 32} priority mobileSize="130vw" desktopSize="120vw" />
-            </div>
-            <div className="relative">
-              <RotateRevealText as="h2" className="text-black coi-pt-30 dt:coi-pt-50 uppercase h1">Tuesday, April 21, 2026</RotateRevealText>
-              <RotateRevealText as="h2" className="text-black coi-pt-30 dt:coi-pt-45 uppercase h1">From <span className="bg-contrast text-primary coi-px-12 coi-rounded-10">9:00 - 11:30</span></RotateRevealText>
-              <RotateRevealText as="h2" className="text-black coi-pt-30 dt:coi-pt-45 uppercase h1 -coi-tracking-px">At HUIT University</RotateRevealText>
-              <div className="-z-1 absolute top-0 left-0 w-full h-full">
-                <div className="w-full coi-h-px bg-contrast/20 coi-mt-70 dt:coi-mt-105 relative" />
-                <div className="w-full coi-h-px bg-contrast/20 coi-mt-74 dt:coi-mt-120 relative" />
-                <div className="w-full coi-h-px bg-contrast/20 coi-mt-76 dt:coi-mt-120 relative" />
-                <div className="w-full coi-h-px bg-contrast/20 coi-mt-76 dt:coi-mt-120 relative" />
-              </div>
-              <h1 className="col-start-1 col-span-4 dt:col-start-1 dt:col-span-6 coi-pt-10 dt:coi-pt-50 coi-mt-30 bg-secondary uppercase coi-text-60 dt:coi-text-160 home-title text-primary relative order-3 dt:order-0 mobile-only">
-                <RotateRevealText>Mai Đạt</RotateRevealText>
-              </h1>
-            </div>
-          </div>
-
-          {/* --- KHU VỰC TẢI THIỆP --- */}
-          {!isModalOpen && guestName && (
-            <div className="col-span-full flex flex-col dt:flex-row items-center justify-center gap-6 dt:gap-12 coi-mt-30 dt:coi-mb-10 order-3 dt:order-0 relative z-20 px-4">
-              <video
-                src="/video1.webm"
-                autoPlay
-                loop
-                muted
-                playsInline
-                style={{ height: '240px', width: 'auto', objectFit: 'contain', position: 'relative', zIndex: 10 }}
-              />
-              <div className="flex flex-col items-center gap-6 relative mt-2 dt:mt-0">
-                <div
-                  className="relative bg-[#f2ebd9] border-[4px] border-[#1a1a1a] px-8 py-4 shadow-md font-chalmers text-[#1a1a1a] text-center transform -rotate-[3deg] rounded-[40px] z-20"
-                  style={{ fontSize: '1.8rem', whiteSpace: 'nowrap', lineHeight: '1.5' }}
-                >
-                  Tải thiệp về <br /> ở đây nè! 👈
-                  <div className="absolute bg-[#f2ebd9] border-l-[4px] border-t-[4px] border-[#1a1a1a]" style={{ width: '28px', height: '28px', top: '-12px', left: '30px', transform: 'rotate(45deg)', borderTopLeftRadius: '4px', zIndex: 30 }}></div>
-                </div>
-
-                <button
-                  onClick={() => setShowPrankModal(true)}
-                  className="font-chalmers border-[4px] border-[#1a1a1a] bg-[#f2ebd9] text-[#1a1a1a] rounded-[60px] px-10 py-5 flex items-center justify-center gap-4 hover:bg-[#1a1a1a] hover:text-[#f2ebd9] transition-all duration-200 z-20 shadow-[6px_6px_0px_#1a1a1a] active:shadow-none active:translate-x-[6px] active:translate-y-[6px]"
-                  style={{ fontSize: '2.2rem', textTransform: 'uppercase' }}
-                >
-                  Tải thiệp về
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* --- HÒM THƯ GỬI LỜI CHÚC --- */}
-          {!isModalOpen && guestName && (
-            <div className="col-span-full order-3 dt:order-0 mt-16 dt:mt-24 mb-10 relative z-20" style={{ width: '100%', padding: '0 16px', boxSizing: 'border-box' }}>
-              <div
-                style={{
-                  width: '100%', maxWidth: '600px', margin: '0 auto', backgroundColor: '#1c1c1c',
-                  border: '1px solid rgba(255,255,255,0.2)', padding: '32px', borderRadius: '16px',
-                  textAlign: 'center', position: 'relative', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', boxSizing: 'border-box'
-                }}
-              >
-                {hearts.map(heart => (
-                  <div key={heart.id} className="absolute text-3xl flying-heart" style={{ left: heart.left, bottom: '20px' }}>❤️</div>
+                    <img src={img.src} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                  </div>
                 ))}
-                <h3 className="font-chalmers text-primary" style={{ fontSize: '26px', color: '#f5f5f5', margin: '0 0 20px 0' }}>
-                  Ước gì được ai đó gửi lời chúc!👉🏻👈🏻💌
-                </h3>
+              </div>
+            </section>
 
-                {!isWishSent ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <textarea
-                      value={wishText}
-                      onChange={(e) => setWishText(e.target.value)}
-                      placeholder="Để đúng tên bạn để mình biết là ai nha 😄."
-                      style={{
-                        width: '100%', minHeight: '120px', padding: '16px', backgroundColor: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff',
-                        outline: 'none', resize: 'none', boxSizing: 'border-box', fontSize: '16px'
-                      }}
-                    />
+            {/* ===== VIRTUAL GRADUATION SCROLL ===== */}
+            <section
+              id="graduation-scroll" data-animate-section
+              style={{
+                padding: '40px 20px 80px', textAlign: 'center',
+                opacity: isSectionVisible('graduation-scroll') ? 1 : 0,
+                transform: isSectionVisible('graduation-scroll') ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.95)',
+                transition: 'all 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s',
+              }}
+            >
+              <div className="section-divider" style={{ marginBottom: '60px' }} />
+              <p style={{ fontFamily: '"Inter", sans-serif', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: '12px', color: 'rgba(96,165,250,0.5)', marginBottom: '12px' }}>Dành riêng cho bạn</p>
+              <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 600, marginBottom: '12px' }} className="gold-text">
+                Cuộn Thư Tri Kỷ
+              </h2>
+              <p style={{ fontFamily: '"Inter", sans-serif', color: 'rgba(238,240,247,0.45)', fontSize: '14px', marginBottom: '36px', maxWidth: '400px', margin: '0 auto 36px' }}>
+                Nhấp vào cuộn thư để mở rộng lời nhắn đặc biệt dành riêng cho bạn ✨
+              </p>
+              <GraduationScroll guestName={guestName} />
+            </section>
+            {/* ===== WISHES & CARD ===== */}
+            <section
+              id="wishes" data-animate-section
+              style={{
+                padding: '40px 20px 80px', maxWidth: '860px', margin: '0 auto',
+                opacity: isSectionVisible('wishes') ? 1 : 0,
+                transform: isSectionVisible('wishes') ? 'translateY(0)' : 'translateY(40px)',
+                transition: 'all 0.8s ease-out 0.2s',
+              }}
+            >
+              <div className="section-divider" style={{ marginBottom: '60px' }} />
+              
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '40px', textAlign: 'center' }}>
+                <p style={{ fontFamily: '"Inter", sans-serif', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: '12px', color: 'rgba(96,165,250,0.5)', marginBottom: '12px' }}>Kỷ niệm & Tương tác</p>
+                <h2 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 600 }} className="gold-text">
+                  Thiệp Mời & Lời Chúc 💌
+                </h2>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '28px', justifyContent: 'center', width: '100%' }}>
+                {/* CARD 1: TẢI THIỆP MỜI */}
+                <div className="glass-card" style={{ flex: '1 1 360px', maxWidth: '400px', minWidth: '280px', padding: 'clamp(24px, 4vw, 36px)', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+                  <p style={{ fontFamily: '"Inter", sans-serif', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: '11px', color: 'rgba(96,165,250,0.5)', marginBottom: '12px' }}>QUÀ TẶNG</p>
+                  <h3 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.3rem, 3.5vw, 1.8rem)', fontWeight: 600, marginBottom: '16px' }} className="gold-text">
+                    Tải Thiệp Mời 🎓
+                  </h3>
+                  <p style={{ fontFamily: '"Inter", sans-serif', color: 'rgba(238,240,247,0.5)', fontSize: '14px', lineHeight: 1.6, marginBottom: '20px', textAlign: 'center' }}>
+                    Nhấp vào nút bên dưới để tải thiệp mời đặc biệt (bản động) về điện thoại của bạn.
+                  </p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%', marginTop: 'auto' }}>
+                    <InteractiveCardPreview ref={cardPreviewRef} guestName={guestName} />
                     <button
-                      onClick={handleSendWish}
-                      disabled={!wishText.trim()}
+                      type="button"
+                      onClick={() => cardPreviewRef.current?.triggerDownload(handleDownloadCard)}
                       style={{
-                        width: '100%', backgroundColor: '#f2ebd9', color: '#1a1a1a', fontWeight: 'bold',
-                        padding: '16px', borderRadius: '8px', border: 'none', cursor: wishText.trim() ? 'pointer' : 'not-allowed',
-                        opacity: wishText.trim() ? 1 : 0.5, textTransform: 'uppercase', fontSize: '16px', boxSizing: 'border-box'
+                        width: '100%', padding: '16px 24px', borderRadius: '12px',
+                        background: 'linear-gradient(135deg, #2563eb, #1a2f6b)',
+                        border: '1px solid rgba(201,169,110,0.3)',
+                        color: '#eef0f7', fontFamily: '"Inter", sans-serif', fontWeight: 600,
+                        fontSize: '15px', cursor: 'pointer', transition: 'all 0.3s',
+                        boxShadow: '0 4px 20px rgba(37,99,235,0.25)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                       }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 30px rgba(37,99,235,0.45)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(37,99,235,0.25)'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)' }}
                     >
-                      Ước được gửi ❤️
+                      Tải thiệp mời 🎓
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
                     </button>
                   </div>
-                ) : (
-                  <div style={{ padding: '32px 0' }}>
-                    <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#fff', marginBottom: '8px' }}>Đã gửi thành công! 🎉</p>
-                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '16px' }}>Cảm ơn lời chúc tuyệt vời của {guestName} nha!</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+                </div>
 
-          <h1 className="col-start-1 col-span-4 dt:col-start-1 dt:col-span-6 coi-pt-10 dt:coi-pt-50 bg-secondary uppercase coi-text-53 dt:coi-text-182 home-title text-primary relative order-3 dt:order-0 coi-pl-6 desktop-only">
-            <RotateRevealText>Thatislife</RotateRevealText>
-          </h1>
-          <div className="col-span-full dt:col-start-7 dt:col-span-2 coi-mt-20 order-3 dt:order-0 coi-ml-21 dt:coi-ml-0">
-            <Image src="/image10.png" alt="Stamp" aspectRatio={5 / 4} mobileSize="100vw" desktopSize="33vw" />
+                {/* CARD 2: GỬI LỜI CHÚC */}
+                <div className="glass-card" style={{ flex: '1 1 360px', maxWidth: '400px', minWidth: '280px', padding: 'clamp(24px, 4vw, 36px)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+                  {hearts.map(heart => (
+                    <div key={heart.id} className="flying-heart" style={{ position: 'absolute', left: heart.left, bottom: '20px', fontSize: '24px', pointerEvents: 'none' }}>❤️</div>
+                  ))}
+
+                  <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <p style={{ fontFamily: '"Inter", sans-serif', letterSpacing: '0.3em', textTransform: 'uppercase', fontSize: '11px', color: 'rgba(96,165,250,0.5)', marginBottom: '12px' }}>GUESTBOOK</p>
+                    <h3 style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.3rem, 3.5vw, 1.8rem)', fontWeight: 600, marginBottom: '16px' }} className="gold-text">
+                      Gửi Lời Chúc ✍️
+                    </h3>
+
+                    {!isWishSent ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+                        <p style={{ fontFamily: '"Inter", sans-serif', color: 'rgba(238,240,247,0.5)', fontSize: '14px', lineHeight: 1.6, marginBottom: '4px' }}>
+                          Hãy gửi một lời chúc hoặc lời nhắn gửi của riêng bạn tới mình nhé!
+                        </p>
+                        <textarea
+                          value={wishText} onChange={(e) => setWishText(e.target.value)}
+                          placeholder="Viết lời chúc cho mình nhé..."
+                          style={{
+                            width: '100%', minHeight: '120px', padding: '16px',
+                            background: 'rgba(37,99,235,0.06)', border: '1px solid rgba(201,169,110,0.15)',
+                            borderRadius: '12px', color: '#eef0f7', outline: 'none', resize: 'none',
+                            boxSizing: 'border-box', fontSize: '15px', fontFamily: '"Inter", sans-serif',
+                            transition: 'border-color 0.3s',
+                          }}
+                          onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = 'rgba(37,99,235,0.5)' }}
+                          onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = 'rgba(201,169,110,0.15)' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSendWish} disabled={!wishText.trim()}
+                          style={{
+                            width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
+                            background: wishText.trim() ? 'linear-gradient(135deg, #c9a96e, #2563eb)' : 'rgba(255,255,255,0.05)',
+                            color: wishText.trim() ? '#080d1a' : 'rgba(255,255,255,0.3)',
+                            fontWeight: 700, fontSize: '15px', cursor: wishText.trim() ? 'pointer' : 'not-allowed',
+                            fontFamily: '"Inter", sans-serif', transition: 'all 0.3s',
+                            boxShadow: wishText.trim() ? '0 4px 20px rgba(201,169,110,0.2)' : 'none',
+                            marginTop: 'auto'
+                          }}
+                        >
+                          Gửi lời chúc ✨
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', padding: '20px 0', animation: 'fadeIn 0.5s ease-out' }}>
+                        <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#e8d5a8', marginBottom: '12px' }}>Đã gửi thành công! 🎉</p>
+                        <p style={{ color: 'rgba(96,165,250,0.9)', fontSize: '15px', lineHeight: 1.6, textAlign: 'center' }}>
+                          Cảm ơn lời chúc tuyệt vời của <span style={{ color: '#c9a96e', fontWeight: 'bold' }}>{guestName}</span> nha!
+                        </p>
+                        <div style={{ fontSize: '48px', marginTop: '20px', animation: 'floatSlow 3s ease-in-out infinite' }}>❤️</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* ===== FOOTER ===== */}
+            <footer style={{ padding: '40px 20px 60px', textAlign: 'center' }}>
+              <div className="section-divider" style={{ marginBottom: '40px' }} />
+              <p style={{ fontFamily: '"Playfair Display", serif', fontSize: 'clamp(1.2rem, 3vw, 1.8rem)', fontWeight: 500, marginBottom: '12px' }} className="gold-text">
+                Cảm ơn bạn
+              </p>
+              <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', color: 'rgba(238,240,247,0.35)', lineHeight: 1.8, maxWidth: '400px', margin: '0 auto 20px' }}>
+                Hy vọng <span style={{ color: '#c9a96e' }}>{guestName}</span> sẽ đến và cùng mình lưu giữ những khoảnh khắc đáng nhớ ❤️
+              </p>
+              <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '11px', color: 'rgba(238,240,247,0.2)', letterSpacing: '0.2em' }}>
+                © 2026 Hùng Anh — GRADUATION
+              </p>
+            </footer>
+
           </div>
-        </section>
+        )}
       </Wrapper>
     </>
   )

@@ -26,10 +26,10 @@ export function Wrapper({
     <>
       <Preloader onComplete={onPreloaderComplete} />
       <main
-        className={cn('relative flex flex-col grow ', className)}
+        className={cn('relative flex flex-col grow', className)}
+        style={{ background: 'transparent' }}
         {...props}
       >
-        <div className="texture" />
         {children}
       </main>
       {lenis && <Lenis root options={typeof lenis === 'object' ? lenis : {}} />}

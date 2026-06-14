@@ -48,9 +48,11 @@ export function Theme({
   return (
     <>
       {global && (
-        <script>
-          {`document.documentElement.setAttribute('data-theme', '${currentTheme}');`}
-        </script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `document.documentElement.setAttribute('data-theme', '${currentTheme}');`,
+          }}
+        />
       )}
       <ThemeContext.Provider
         value={{

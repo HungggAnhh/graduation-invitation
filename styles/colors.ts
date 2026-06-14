@@ -1,13 +1,16 @@
 const colors = {
-  black: 'oklch(0.23 0.0038 106.69)',
-  white: 'oklch(1 0 360)',
-  gray: 'oklch(0.3 0 360)',
-  green: 'oklch(0.8689 0.2868 142.6042)',
-  gray90: 'oklch(0.9219 0 0)',
-  sage: 'oklch(0.8211 0.0785 143.5)',
-  slate: 'oklch(0.5412 0.0311 233.4)',
-  paper: 'oklch(0.8032 0.0161 67.6)',
-  orange: '#ea580c',
+  midnight: '#080d1a',
+  navy: '#0f1b3d',
+  royal: '#1a2f6b',
+  blue: '#2563eb',
+  blueLight: '#60a5fa',
+  gold: '#c9a96e',
+  goldLight: '#e8d5a8',
+  cream: '#eef0f7',
+  slate: '#1e2444',
+  black: '#050810',
+  white: '#ffffff',
+  gray: '#3a3f55',
 } as const
 
 const themeNames = ['light', 'dark'] as const
@@ -15,14 +18,14 @@ const colorNames = ['primary', 'secondary', 'contrast'] as const
 
 const themes = {
   light: {
-    primary: colors.paper,
-    secondary: colors.orange,
-    contrast: colors.gray,
+    primary: colors.midnight,
+    secondary: colors.cream,
+    contrast: colors.gold,
   },
   dark: {
-    primary: colors.black,
-    secondary: colors.white,
-    contrast: colors.gray,
+    primary: colors.midnight,
+    secondary: colors.cream,
+    contrast: colors.gold,
   },
 } as const satisfies Themes
 

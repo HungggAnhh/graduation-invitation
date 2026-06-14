@@ -1,8 +1,8 @@
-/* GLOBAL CSS FILE - Contains global styles that shouldn't be reset */
+/* GLOBAL CSS FILE - Midnight Blue & Gold Theme */
 
 html {
   --scrollbar-gutter: 0px;
-  scrollbar-gutter: stable; /* This is needed to prevent the scrollbar from jumping */
+  scrollbar-gutter: stable;
 
   &.lenis-stopped {
     --scrollbar-gutter: var(--scrollbar-width);
@@ -14,69 +14,61 @@ html.overflow-hidden {
   touch-action: none;
 }
 
-*::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #080d1a;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c9a96e, #2563eb);
+  border-radius: 4px;
 }
 
-/* Hide native scrollbar on mobile while keeping scrolling enabled */
 @media (max-width: 799px) {
   * {
     scrollbar-width: none;
   }
-
   *::-webkit-scrollbar {
     width: 0;
     height: 0;
     display: none;
-  }
-
-  *::-webkit-scrollbar-track,
-  *::-webkit-scrollbar-thumb {
-    display: none;
-    background: transparent;
   }
 }
 
 body {
   min-height: 100vh;
   overscroll-behavior: none;
-  background-color: var(--color-primary);
-  color: var(--color-secondary);
+  background-color: #080d1a;
+  color: #eef0f7;
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', sans-serif;
 }
 
-/* Selection styling */
+/* Selection */
 *::selection {
-  background-color: var(--color-contrast);
-  color: var(--color-primary);
+  background-color: #c9a96e;
+  color: #080d1a;
 }
 
 /* SVG icon colors */
 svg.icon {
-  path[fill],
-  rect[fill],
-  circle[fill] {
-    fill: currentColor;
-  }
-  path[stroke],
-  rect[stroke],
-  circle[stroke] {
-    stroke: currentColor;
-  }
+  path[fill], rect[fill], circle[fill] { fill: currentColor; }
+  path[stroke], rect[stroke], circle[stroke] { stroke: currentColor; }
 }
 
-/* Hover states */
+/* Links */
 .link {
   @media (--hover) {
-    &:hover {
-      text-decoration: underline;
-    }
+    &:hover { text-decoration: underline; }
   }
 }
 
+/* Contact hover */
 .contact {
   position: relative;
   overflow: hidden;
@@ -90,65 +82,225 @@ svg.icon {
     left: -0.5;
     width: 100%;
     height: 100%;
-    background-color: var(--color-contrast);
+    background: linear-gradient(135deg, #2563eb, #c9a96e);
     transform: translateX(-100%);
     transition: transform 0.5s var(--ease-out-cubic);
     z-index: -1;
   }
 
   @media (--hover) {
-    &:hover::before,
-    &:focus-visible::before {
-      transform: translateX(0);
-    }
-
-    &:hover,
-    &:focus-visible {
-      color: var(--color-primary);
-    }
+    &:hover::before, &:focus-visible::before { transform: translateX(0); }
+    &:hover, &:focus-visible { color: #080d1a; }
   }
 }
 
-/* Focus states */
+/* Focus */
 *:focus-visible {
-  outline: 2px solid var(--color-contrast);
+  outline: 2px solid #c9a96e;
 }
 
-html.scrollbar-grabbing,
-img {
+html.scrollbar-grabbing, img {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-  -o-user-select: none;
   user-select: none;
 }
 
-button {
-  cursor: pointer;
+button { cursor: pointer; }
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-html.screenshot {
-  *:not(:has(canvas), canvas, :has(#orchestra), #orchestra, #orchestra *) {
-    /* biome-ignore lint: it's all good */
-    opacity: 0 !important;
-  }
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmerGold {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(37, 99, 235, 0.3), 0 0 40px rgba(201, 169, 110, 0.1); }
+  50% { box-shadow: 0 0 30px rgba(37, 99, 235, 0.5), 0 0 60px rgba(201, 169, 110, 0.2); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(201, 169, 110, 0.3); }
+  50% { border-color: rgba(37, 99, 235, 0.5); }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blinkCursor {
+  0%, 100% { border-color: #c9a96e; }
+  50% { border-color: transparent; }
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+}
+
+@keyframes spinRecord {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.3); }
+}
+
+/* ========== UTILITY CLASSES ========== */
+.glass-card {
+  background: rgba(30, 36, 68, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 169, 110, 0.15);
+  border-radius: 20px;
+}
+
+.glass-card-blue {
+  background: rgba(37, 99, 235, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  border-radius: 20px;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #e8d5a8 0%, #c9a96e 50%, #e8d5a8 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerGold 3s linear infinite;
+}
+
+.blue-gold-text {
+  background: linear-gradient(135deg, #60a5fa, #c9a96e, #60a5fa);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmerGold 4s linear infinite;
+}
+
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #2563eb, #c9a96e, #2563eb);
+  background-size: 300% 300%;
+  animation: gradientShift 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.flying-heart {
+  animation: floatUp 2s ease-out forwards;
+}
+
+.spin-slow {
+  animation: spinRecord 4s linear infinite;
+}
+
+/* ========== TEXTURE ========== */
 .texture {
   will-change: transform;
   z-index: 0;
-  opacity: 0.15;
+  opacity: 0.04;
   mix-blend-mode: overlay;
   pointer-events: none;
-  background-image: url(https://khanh.me/api/media/file/614f353f1e11a6a7afdd8b74_6059a3e2b9ae6d2bd508685c_pt-texture-2.jpg);
-  background-position: 50%;
-  background-size: auto;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px;
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  top: 0; bottom: 0; left: 0; right: 0;
 }
-/* GHI ĐÈ MÀU SẮC TOÀN BỘ TRANG WEB */
+
+/* ========== SECTION DIVIDERS ========== */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c9a96e 20%, #2563eb 50%, #c9a96e 80%, transparent);
+  opacity: 0.4;
+}
+
+/* ========== VIRTUAL SCROLL ANIMATIONS & CLASSES ========== */
+@keyframes floatScroll {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+
+@keyframes unrollScroll {
+  0% {
+    transform: scaleY(0.1);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.closed-scroll-design {
+  transition: all 0.3s ease;
+}
+
+.closed-scroll-design:hover {
+  border-color: rgba(201,169,110,0.6) !important;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 45px rgba(37,99,235,0.25) !important;
+}
+
+.wax-seal-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.wax-seal-hover:hover {
+  transform: scale(1.1) rotate(5deg) !important;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.5), 0 0 25px rgba(201,169,110,0.6) !important;
+}
 

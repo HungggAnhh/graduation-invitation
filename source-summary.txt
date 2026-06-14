@@ -1,0 +1,49 @@
+Project: graduation-invitation
+
+Overview:
+- Next.js 16 app using React 19 and Bun package manager.
+- Single-page graduation invitation website with interactive UI, animations, and client-side effects.
+- Uses Tailwind CSS v4, Biome for lint/format, and TypeScript strict mode.
+
+Key files:
+- package.json: project info, dependencies, scripts, Bun package manager.
+- next.config.ts: security headers, image optimization, Next.js experimental settings, bundle analyzer plugin.
+- tsconfig.json: strict TS settings, moduleResolution bundler, path alias ~/*.
+- app/layout.tsx: global metadata, fonts, global CSS import, RealViewport component.
+- app/page.tsx: main landing page logic and UI.
+- components/wrapper/index.tsx: wraps page content with Preloader, Theme, TransformProvider, Lenis.
+- components/countdown-banner/index.tsx: countdown timer component.
+- components/real-viewport/index.ts: sets CSS viewport variables and scrollbar width.
+
+Main behavior in app/page.tsx:
+- Starts with a modal asking the guest for their name.
+- Uses a virtual keyboard UI for mobile and desktop.
+- Plays background music and shows an audio visualizer button.
+- Renders a particle background canvas.
+- Contains sections: hero, countdown, event details, gallery, VIP ticket, wishes, footer.
+- Allows guest interaction: click anywhere to trigger confetti.
+- Sends wishes via Formspree endpoint from env NEXT_PUBLIC_FORMSPREE_URL.
+- Includes a prank modal workflow with selfie camera capture and upload to ImgBB using NEXT_PUBLIC_IMGBB_API_KEY.
+- Shows a personalized VIP ticket with 3D mouse hover effect.
+
+Data and constants:
+- CONTACT_LINKS: map link, facebook, phone.
+- GALLERY_IMAGES: local gallery image list.
+- TARGET_DATE: event date 2026-05-21 09:00 +07:00.
+
+Important env variables:
+- NEXT_PUBLIC_BASE_URL
+- NEXT_PUBLIC_FORMSPREE_URL
+- NEXT_PUBLIC_IMGBB_API_KEY
+
+Styling notes:
+- Uses many inline style objects in app/page.tsx.
+- Also uses CSS utility classes like glass-card, section-divider, gold-text.
+- Global fonts loaded from Google Fonts.
+
+Usage:
+- bun run dev
+- bun run build
+- bun run start
+
+This file summarizes the source structure and key features of the project.
