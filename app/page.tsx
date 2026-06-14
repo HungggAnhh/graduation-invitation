@@ -33,9 +33,9 @@ const CONTACT_LINKS = [
 
 const GALLERY_IMAGES = [
   
-  { src: '/image9.png', alt: 'Kỷ niệm 1' },
-  { src: '/image2.png', alt: 'Kỷ niệm 2' },
-  { src: '/image3.png', alt: 'Kỷ niệm 3' },
+  { src: '/image9.webp', alt: 'Kỷ niệm 1' },
+  { src: '/image2.webp', alt: 'Kỷ niệm 2' },
+  { src: '/image3.webp', alt: 'Kỷ niệm 3' },
 ]
 
 const TARGET_DATE = new Date('2026-06-20T14:30:00+07:00')
@@ -587,266 +587,184 @@ function GraduationScroll({ guestName }: { guestName: string }) {
 }
 
 // ==========================================
-// THIẾT BỊ NHẬP TÊN (LAPTOP / ĐIỆN THOẠI)
+// THIẾT BỊ NHẬP TÊN (NAME INPUT MODAL WITH NATIVE KEYBOARD)
 // ==========================================
 function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void }) {
-  const [typed, setTyped] = useState('')
-  const typedRef = useRef(typed)
-  const [pressedKey, setPressedKey] = useState<string | null>(null)
-  const [cursorVisible, setCursorVisible] = useState(true)
-
-  // State kiểm tra giao diện mobile
-  const [isMobile, setIsMobile] = useState(false)
+  const [name, setName] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    // Kiểm tra kích thước màn hình lúc mới load và khi resize
-    const checkMobile = () => setIsMobile(window.innerWidth < 640)
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    // Tự động focus ô nhập tên khi modal hiển thị
+    if (inputRef.current) {
+      inputRef.current.focus()
+    }
   }, [])
 
-  useEffect(() => {
-    typedRef.current = typed
-  }, [typed])
-
-  useEffect(() => {
-    const iv = setInterval(() => setCursorVisible(v => !v), 530)
-    return () => clearInterval(iv)
-  }, [])
-
-  const triggerKey = (key: string) => {
-    setPressedKey(key)
-    setTimeout(() => setPressedKey(null), 130)
-  }
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Backspace') {
-        e.preventDefault()
-        setTyped(p => p.slice(0, -1))
-        triggerKey('⌫')
-      } else if (e.key === 'Enter') {
-        triggerKey('ENTER')
-        if (typedRef.current.trim()) {
-          onSubmit(typedRef.current.trim())
-        }
-      } else if (e.key === ' ') {
-        e.preventDefault()
-        setTyped(p => p.length < 28 ? p + ' ' : p)
-        triggerKey('SPACE')
-      } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-        setTyped(p => p.length < 28 ? p + e.key : p)
-        triggerKey(e.key.toUpperCase())
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [onSubmit])
-
-  const handleVKey = (key: string) => {
-    triggerKey(key)
-    if (key === '⌫') {
-      setTyped(p => p.slice(0, -1))
-    } else if (key === 'ENTER') {
-      if (typedRef.current.trim()) {
-        onSubmit(typedRef.current.trim())
-      }
-    } else if (key === 'SPACE') {
-      setTyped(p => p.length < 28 ? p + ' ' : p)
-    } else {
-      setTyped(p => p.length < 28 ? p + key : p)
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (name.trim()) {
+      onSubmit(name.trim())
     }
   }
-
-  const rows = [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫'],
-    ['SPACE', 'ENTER'],
-  ]
-
-  const keyStyle = (k: string): React.CSSProperties => {
-    const isEnter = k === 'ENTER'
-    const isSpace = k === 'SPACE'
-    const isBack = k === '⌫'
-    const pressed = pressedKey === k
-    return {
-      // Điều chỉnh width phím linh hoạt hơn cho cả Mobile và PC
-      width: isSpace ? (isMobile ? '120px' : 'clamp(90px,15vw,160px)') : isEnter ? (isMobile ? '80px' : 'clamp(60px,10vw,110px)') : isBack ? (isMobile ? '40px' : 'clamp(36px,6vw,60px)') : (isMobile ? '8vw' : 'clamp(22px,4vw,42px)'),
-      height: isMobile ? '44px' : 'clamp(28px,4.5vw,42px)',
-      borderRadius: '6px',
-      background: pressed
-        ? (isEnter ? 'linear-gradient(135deg,#c9a96e,#2563eb)' : 'rgba(96,165,250,0.3)')
-        : (isEnter ? 'linear-gradient(135deg,rgba(201,169,110,0.2),rgba(37,99,235,0.15))' : 'rgba(22,30,60,0.9)'),
-      border: pressed
-        ? '1px solid rgba(96,165,250,0.7)'
-        : isEnter ? '1px solid rgba(201,169,110,0.35)' : '1px solid rgba(255,255,255,0.07)',
-      color: isEnter ? '#c9a96e' : '#eef0f7',
-      fontSize: isSpace ? '11px' : isBack ? '14px' : '13px',
-      fontFamily: '"Inter", sans-serif',
-      fontWeight: (isEnter || isSpace) ? 700 : 500,
-      cursor: 'pointer',
-      transition: 'all 0.07s',
-      transform: pressed ? 'translateY(2px)' : 'translateY(0)',
-      boxShadow: pressed
-        ? '0 1px 0 rgba(0,0,0,0.6)'
-        : isEnter
-          ? '0 3px 0 rgba(0,0,0,0.5), 0 0 8px rgba(201,169,110,0.1)'
-          : '0 3px 0 rgba(0,0,0,0.5)',
-      letterSpacing: isSpace ? '0.12em' : '0.04em',
-      userSelect: 'none',
-      flexShrink: 0,
-      margin: isMobile ? '2px' : '0', // Thêm margin nhỏ cho mobile dễ bấm
-    }
-  }
-
-  // Khối Component hiển thị màn hình (dùng chung cho cả PC và Mobile)
-  const ScreenContent = () => (
-    <div style={{ position: 'relative', zIndex: 2, padding: isMobile ? '60px 20px 20px' : 'clamp(20px,4vw,40px) clamp(16px,3vw,32px)', flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-      <p style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(96,165,250,0.45)', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '6px' }}>&gt; Cho mình biết tên của bạn!</p>
-      <div style={{ minHeight: '85px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
-        {typed ? (
-          <span style={{
-            fontFamily: '"Playfair Display", serif',
-            fontStyle: 'italic',
-            fontWeight: 600,
-            fontSize: 'clamp(2.2rem,7vw,4.2rem)',
-            background: 'linear-gradient(135deg,#e8d5a8,#c9a96e,#60a5fa)',
-            backgroundSize: '200% auto',
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-            animation: 'shimmerGold 3s linear infinite',
-          }}>
-            {typed}<span style={{ opacity: cursorVisible ? 1 : 0, WebkitTextFillColor: '#60a5fa', fontFamily: 'monospace', fontSize: '0.55em' }}>|</span>
-          </span>
-        ) : (
-          <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '14px', color: 'rgba(238,240,247,0.18)', fontStyle: 'italic' }}>
-            {cursorVisible ? '|' : ' '}
-          </span>
-        )}
-      </div>
-
-      {typed && (
-        <p style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(96,165,250,0.35)', marginTop: '10px' }}>
-          {typed.length}/28 — nhấn ENTER để xác nhận
-        </p>
-      )}
-    </div>
-  )
 
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      background: 'radial-gradient(ellipse at 50% 30%, rgba(37,99,235,0.1) 0%, rgba(8,13,26,0.98) 65%)',
-      padding: '16px', overflow: 'auto',
+      background: 'radial-gradient(ellipse at 50% 30%, rgba(37,99,235,0.15) 0%, rgba(8,13,26,0.98) 65%)',
+      padding: '20px',
     }}>
-
-      {isMobile ? (
-        /* ==========================================
-           GIAO DIỆN ĐIỆN THOẠI (MOBILE VIEW)
-           ========================================== */
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          width: '100%',
+          maxWidth: '460px',
+          background: 'linear-gradient(135deg, rgba(25, 32, 68, 0.85) 0%, rgba(13, 22, 48, 0.95) 100%)',
+          border: '1.5px solid rgba(201, 169, 110, 0.3)',
+          borderRadius: '24px',
+          padding: 'clamp(24px, 6vw, 40px) clamp(20px, 5vw, 32px)',
+          boxShadow: '0 30px 70px rgba(0,0,0,0.65), 0 0 50px rgba(37,99,235,0.15)',
+          backdropFilter: 'blur(16px)',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Glow decoration */}
         <div style={{
-          width: '100%', maxWidth: '380px', height: '85vh', maxHeight: '800px',
-          display: 'flex', flexDirection: 'column',
-          background: '#0a1020', borderRadius: '40px',
-          border: '8px solid #1a2542',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.05)',
-          overflow: 'hidden', position: 'relative'
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(circle at 50% 50%, rgba(96,165,250,0.08) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        {/* Decorative Badge */}
+        <div style={{
+          width: '56px', height: '56px', borderRadius: '50%',
+          background: 'linear-gradient(135deg, rgba(201,169,110,0.2), rgba(37,99,235,0.1))',
+          border: '1px solid rgba(201,169,110,0.4)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: '24px', color: '#c9a96e', marginBottom: '20px',
+          boxShadow: '0 0 20px rgba(201,169,110,0.2)',
         }}>
-          {/* Nút sườn điện thoại (Trang trí) */}
-          <div style={{ position: 'absolute', right: '-8px', top: '120px', width: '4px', height: '60px', background: '#1a2542', borderRadius: '0 4px 4px 0' }} />
-          <div style={{ position: 'absolute', left: '-8px', top: '100px', width: '4px', height: '40px', background: '#1a2542', borderRadius: '4px 0 0 4px' }} />
-          <div style={{ position: 'absolute', left: '-8px', top: '150px', width: '4px', height: '40px', background: '#1a2542', borderRadius: '4px 0 0 4px' }} />
-
-          {/* Dynamic Island (Tai thỏ iPhone) */}
-          <div style={{
-            position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)',
-            width: '100px', height: '28px', background: '#000', borderRadius: '20px',
-            zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '8px'
-          }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)', marginRight: '6px' }} />
-            <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#111', border: '1px solid #222' }} />
-          </div>
-
-          {/* Phần Màn hình Điện thoại */}
-          <div style={{
-            flex: 1, background: 'linear-gradient(160deg,#192044 0%,#0d1630 100%)',
-            display: 'flex', flexDirection: 'column', position: 'relative'
-          }}>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.025) 3px,rgba(0,0,0,0.025) 4px)', pointerEvents: 'none', zIndex: 1 }} />
-            <ScreenContent />
-          </div>
-
-          {/* Bàn phím ảo trên Điện thoại */}
-          <div style={{
-            background: 'rgba(14,21,41,0.95)', backdropFilter: 'blur(10px)',
-            padding: '16px 8px 30px', borderTop: '1px solid rgba(255,255,255,0.05)'
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center' }}>
-              {rows.map((row, ri) => (
-                <div key={ri} style={{ display: 'flex', gap: '4px', justifyContent: 'center', width: '100%' }}>
-                  {row.map(k => (
-                    <button key={k} type="button" onClick={() => handleVKey(k)} style={keyStyle(k)}>
-                      {k === 'SPACE' ? 'SPACE' : k}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
+          🎓
         </div>
 
-      ) : (
+        <p style={{
+          fontFamily: '"Inter", sans-serif',
+          fontSize: '11px',
+          letterSpacing: '0.35em',
+          textTransform: 'uppercase',
+          color: 'rgba(96,165,250,0.6)',
+          marginBottom: '12px'
+        }}>
+          Lễ Tốt Nghiệp 2026
+        </p>
 
-        /* ==========================================
-           GIAO DIỆN PC / LAPTOP (Giữ nguyên phong cách cũ)
-           ========================================== */
-        <div style={{ width: '100%', maxWidth: '620px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '11px', letterSpacing: '0.4em', textTransform: 'uppercase', color: 'rgba(96,165,250,0.45)', marginBottom: '20px' }}>🎓 Lễ Tốt Nghiệp 2026</p>
+        <h3 style={{
+          fontFamily: '"Playfair Display", serif',
+          fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+          fontWeight: 600,
+          color: '#eef0f7',
+          marginBottom: '28px',
+          lineHeight: 1.3,
+        }}>
+          Vui lòng nhập tên của bạn
+        </h3>
 
-          <div style={{
-            width: '100%', borderRadius: '14px 14px 0 0',
-            background: 'linear-gradient(160deg,#192044 0%,#0d1630 100%)',
-            border: '2px solid rgba(201,169,110,0.2)', borderBottom: 'none',
-            boxShadow: '0 -6px 40px rgba(37,99,235,0.18), inset 0 0 50px rgba(37,99,235,0.04)',
-            overflow: 'hidden', position: 'relative',
-          }}>
-            <div style={{ position: 'absolute', top: '8px', left: '50%', transform: 'translateX(-50%)', width: '6px', height: '6px', borderRadius: '50%', background: 'rgba(255,255,255,0.12)', zIndex: 5 }} />
-            <div style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', background: 'rgba(0,0,0,0.22)', borderBottom: '1px solid rgba(255,255,255,0.04)', gap: '7px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#ff5f57', boxShadow: '0 0 5px rgba(255,95,87,0.6)' }} />
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#febc2e', boxShadow: '0 0 5px rgba(254,188,46,0.5)' }} />
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#28c840', boxShadow: '0 0 5px rgba(40,200,64,0.5)' }} />            </div>
-            <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.025) 3px,rgba(0,0,0,0.025) 4px)', pointerEvents: 'none', zIndex: 1 }} />
+        {/* Input container */}
+        <div style={{ width: '100%', position: 'relative', marginBottom: '8px' }}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value.slice(0, 28))}
+            placeholder="Nhập tên tại đây..."
+            style={{
+              width: '100%',
+              padding: '16px 20px',
+              borderRadius: '14px',
+              background: 'rgba(10, 16, 32, 0.75)',
+              border: '1.5px solid rgba(201, 169, 110, 0.25)',
+              color: '#eef0f7',
+              fontSize: '22px',
+              fontFamily: '"Playfair Display", serif',
+              fontStyle: 'italic',
+              fontWeight: 600,
+              outline: 'none',
+              boxSizing: 'border-box',
+              textAlign: 'center',
+              transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
+            }}
+            className="name-input-glow"
+          />
+          <style dangerouslySetInnerHTML={{
+            __html: `
+            .name-input-glow:focus {
+              border-color: #c9a96e !important;
+              box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 0 15px rgba(201,169,110,0.25), 0 0 30px rgba(37,99,235,0.15) !important;
+              background: rgba(14, 22, 44, 0.95) !important;
+            }
+            .name-input-glow::placeholder {
+              color: rgba(238, 240, 247, 0.22);
+              font-family: "Inter", sans-serif;
+              font-style: normal;
+              font-size: 15px;
+            }
+          `}} />
+        </div>
 
-            <ScreenContent />
-          </div>
+        {/* Character Counter */}
+        <p style={{
+          fontFamily: 'monospace',
+          fontSize: '11px',
+          color: 'rgba(96,165,250,0.45)',
+          marginBottom: '28px'
+        }}>
+          {name.length}/28 ký tự
+        </p>
 
-          <div style={{ width: '92%', height: '10px', background: 'linear-gradient(180deg,#151f3e,#0c1228)', borderRadius: '0 0 3px 3px', boxShadow: '0 4px 12px rgba(0,0,0,0.6)' }} />
-
-          <div style={{
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={!name.trim()}
+          style={{
             width: '100%',
-            background: 'linear-gradient(175deg,#141e3c 0%,#0e1529 100%)',
-            borderRadius: '0 0 18px 18px',
-            padding: 'clamp(12px,2vw,20px) clamp(14px,2.5vw,24px) clamp(10px,1.5vw,16px)',
-            border: '1px solid rgba(201,169,110,0.12)', borderTop: 'none',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.55)',
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(4px,0.8vw,7px)', alignItems: 'center' }}>
-              {rows.map((row, ri) => (
-                <div key={ri} style={{ display: 'flex', gap: 'clamp(3px,0.5vw,5px)', justifyContent: 'center' }}>
-                  {row.map(k => (
-                    <button key={k} type="button" onClick={() => handleVKey(k)} style={keyStyle(k)}>
-                      {k === 'SPACE' ? 'SPACE' : k}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-            <div style={{ width: 'clamp(70px,15vw,120px)', height: 'clamp(36px,5vw,48px)', background: 'rgba(18,26,52,0.8)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '7px', margin: 'clamp(8px,1.2vw,14px) auto 0', boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.4)' }} />
-          </div>
-        </div>
-      )}
+            height: '52px',
+            borderRadius: '12px',
+            border: 'none',
+            background: name.trim()
+              ? 'linear-gradient(135deg, #c9a96e 0%, #2563eb 100%)'
+              : 'rgba(255, 255, 255, 0.05)',
+            color: name.trim() ? '#080d1a' : 'rgba(255,255,255,0.25)',
+            fontWeight: 800,
+            fontSize: '15px',
+            fontFamily: '"Inter", sans-serif',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            cursor: name.trim() ? 'pointer' : 'not-allowed',
+            transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+            boxShadow: name.trim() ? '0 4px 20px rgba(37,99,235,0.25), 0 0 15px rgba(201,169,110,0.15)' : 'none',
+          }}
+          onMouseEnter={e => {
+            if (name.trim()) {
+              e.currentTarget.style.transform = 'translateY(-2px)'
+              e.currentTarget.style.boxShadow = '0 8px 30px rgba(37,99,235,0.45), 0 0 25px rgba(201,169,110,0.3)'
+            }
+          }}
+          onMouseLeave={e => {
+            if (name.trim()) {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 4px 20px rgba(37,99,235,0.25), 0 0 15px rgba(201,169,110,0.15)'
+            }
+          }}
+        >
+          XÁC NHẬN 🎓
+        </button>
+      </form>
     </div>
   )
 }
@@ -949,8 +867,8 @@ export default function Home() {
 
   const handleDownloadCard = () => {
     const link = document.createElement('a')
-    link.href = '/thiep-moi.png'
-    link.download = `Thiep_Moi_Tot_Nghiep_${guestName || 'Khach'}.png`
+    link.href = '/thiep-moi.webp'
+    link.download = `Thiep_Moi_Tot_Nghiep_${guestName || 'Khach'}.webp`
     link.target = '_blank'
     document.body.appendChild(link)
     link.click()
@@ -1102,7 +1020,7 @@ export default function Home() {
                   animation: 'scanlineTech 3s ease-in-out infinite', zIndex: 5, pointerEvents: 'none',
                 }} />
                 {/* Image */}
-                <img src="/image9.png" alt="Graduation" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="/image9.webp" alt="Graduation" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
 
               <div style={{ marginTop: '60px', animation: 'floatSlow 3s ease-in-out infinite' }}>

@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     url: APP_BASE_URL,
     images: [
       {
-        url: '/og.png',
+        url: '/og.webp',
         width: 1200,
         height: 630,
         alt: APP_DEFAULT_TITLE,
