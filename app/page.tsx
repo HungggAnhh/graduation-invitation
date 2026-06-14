@@ -461,11 +461,13 @@ function GraduationScroll({ guestName }: { guestName: string }) {
             </p>
 
             <h4 style={{
-              fontFamily: '"Great Vibes", cursive',
-              fontSize: 'clamp(2.5rem, 7vw, 3.8rem)',
+              fontFamily: '"Playfair Display", serif',
+              fontStyle: 'italic',
+              fontWeight: 600,
+              fontSize: 'clamp(2.2rem, 6.5vw, 3.4rem)',
               color: '#b59452',
               margin: '8px 0 16px',
-              lineHeight: 1,
+              lineHeight: 1.2,
             }}>
               {guestName}
             </h4>
@@ -539,10 +541,12 @@ function GraduationScroll({ guestName }: { guestName: string }) {
               <div style={{ textAlign: 'center', paddingRight: '20px' }}>
                 <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '10px', color: '#8d8c89', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Người gửi tri ân</p>
                 <p style={{
-                  fontFamily: '"Great Vibes", cursive',
-                  fontSize: '32px',
+                  fontFamily: '"Playfair Display", serif',
+                  fontStyle: 'italic',
+                  fontWeight: 600,
+                  fontSize: '28px',
                   color: '#1c2e5a',
-                  lineHeight: 0.8,
+                  lineHeight: 1.2,
                   marginBottom: '6px',
                 }}>
                   Hùng Anh
@@ -704,7 +708,9 @@ function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void })
       <div style={{ minHeight: '85px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 16px' }}>
         {typed ? (
           <span style={{
-            fontFamily: '"Great Vibes", cursive',
+            fontFamily: '"Playfair Display", serif',
+            fontStyle: 'italic',
+            fontWeight: 600,
             fontSize: 'clamp(2.2rem,7vw,4.2rem)',
             background: 'linear-gradient(135deg,#e8d5a8,#c9a96e,#60a5fa)',
             backgroundSize: '200% auto',
@@ -1063,7 +1069,7 @@ export default function Home() {
                 fontFamily: '"Inter", sans-serif', fontSize: 'clamp(1rem, 2.5vw, 1.25rem)',
                 color: '#eef0f7', maxWidth: '600px', lineHeight: 1.7, marginBottom: '10px',
               }}>
-                Xin chào, <span style={{ fontFamily: '"Great Vibes", cursive', fontSize: '1.8em', color: '#c9a96e' }}>{guestName}</span>
+                Xin chào, <span style={{ fontFamily: '"Playfair Display", serif', fontStyle: 'italic', fontWeight: 600, fontSize: '1.45em', color: '#c9a96e' }}>{guestName}</span>
               </p>
 
               <p style={{ fontFamily: '"Inter", sans-serif', fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', color: 'rgba(238,240,247,0.65)', maxWidth: '550px', lineHeight: 1.8, marginBottom: '40px' }}>
