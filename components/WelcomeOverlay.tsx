@@ -149,12 +149,12 @@ export default function WelcomeOverlay({
 
   // Character images mapped to 5 states (indexing: Scene 1->01, Scene 2->02, Scene 3->03, Scene 4->04, Scene 5/6->05)
   const characterImages = [
-    '/01_idle.png',
-    '/02_wave.png',
-    '/03_happy.png',
-    '/04_thankyou.png',
-    '/05_bye.png',
-    '/05_bye.png', // Keep the final farewell state for invitation reveal
+    '/01_idle.webp',
+    '/02_wave.webp',
+    '/03_happy.webp',
+    '/04_thankyou.webp',
+    '/05_bye.webp',
+    '/05_bye.webp', // Keep the final farewell state for invitation reveal
   ]
 
   const currentLine = dialogLines[currentIndex]
@@ -167,11 +167,11 @@ export default function WelcomeOverlay({
   // Asset Preloading
   useEffect(() => {
     const assets = [
-      '/01_idle.png',
-      '/02_wave.png',
-      '/03_happy.png',
-      '/04_thankyou.png',
-      '/05_bye.png',
+      '/01_idle.webp',
+      '/02_wave.webp',
+      '/03_happy.webp',
+      '/04_thankyou.webp',
+      '/05_bye.webp',
     ]
     for (const src of assets) {
       const img = new Image()
