@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from 'react'
+import type React from 'react'
+import { useState, useRef, useImperativeHandle, forwardRef, useEffect } from 'react'
 
 export interface InteractiveCardPreviewRef {
   triggerDownload: (onComplete: () => void) => void

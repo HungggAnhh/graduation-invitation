@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { useLenis } from 'lenis/react'
+import { useEffect, useRef, useState } from 'react'
 import { useTypewriter } from '~/hooks/useTypewriter'
 
 interface WelcomeOverlayProps {
@@ -46,8 +46,8 @@ function FloatingParticles() {
     // Graduation theme palette: Gold, Soft Blue, Bright Amber, White/Sparkle
     const colors = [
       'rgba(201, 169, 110, ', // Gold #c9a96e
-      'rgba(96, 165, 250, ',  // Blue #60a5fa
-      'rgba(244, 180, 26, ',  // Amber #f4b41a
+      'rgba(96, 165, 250, ', // Blue #60a5fa
+      'rgba(244, 180, 26, ', // Amber #f4b41a
       'rgba(255, 255, 255, ', // White/Sparkle
     ]
 
@@ -145,16 +145,16 @@ export default function WelcomeOverlay({
     `Hy vọng sẽ được gặp ${guestName} trong ngày tốt nghiệp để cùng lưu lại thêm một kỷ niệm đẹp nữa.`,
 
     `Nhớ tải thiệp về để không quên ngày giờ nhé 🚀`,
-  ];
+  ]
 
   // Character images mapped to 5 states (indexing: Scene 1->01, Scene 2->02, Scene 3->03, Scene 4->04, Scene 5/6->05)
   const characterImages = [
-    '/01_idle.webp',
-    '/02_wave.webp',
-    '/03_happy.webp',
-    '/04_thankyou.webp',
-    '/05_bye.webp',  
-    '/05_bye.webp', // Keep the final farewell state for invitation reveal
+    '/01_idle.png',
+    '/02_wave.png',
+    '/03_happy.png',
+    '/04_thankyou.png',
+    '/05_bye.png',
+    '/05_bye.png', // Keep the final farewell state for invitation reveal
   ]
 
   const currentLine = dialogLines[currentIndex]
@@ -167,11 +167,11 @@ export default function WelcomeOverlay({
   // Asset Preloading
   useEffect(() => {
     const assets = [
-      '/01_idle.webp',
-      '/02_wave.webp',
-      '/03_happy.webp',
-      '/04_thankyou.webp',
-      '/05_bye.webp',
+      '/01_idle.png',
+      '/02_wave.png',
+      '/03_happy.png',
+      '/04_thankyou.png',
+      '/05_bye.png',
     ]
     for (const src of assets) {
       const img = new Image()
@@ -189,7 +189,12 @@ export default function WelcomeOverlay({
     const speechContainer = speechContainerRef.current
 
     // Kill existing animations on these elements to prevent conflicts
-    const targetsToKill = [background, overlay, character, speechContainer].filter(Boolean)
+    const targetsToKill = [
+      background,
+      overlay,
+      character,
+      speechContainer,
+    ].filter(Boolean)
     if (targetsToKill.length > 0) {
       gsap.killTweensOf(targetsToKill)
     }
@@ -279,13 +284,25 @@ export default function WelcomeOverlay({
 
     // Animate overlay out
     if (speechContainerRef.current) {
-      tl.to(speechContainerRef.current, { y: 60, opacity: 0, duration: 0.45, ease: 'power2.in' }, 0)
+      tl.to(
+        speechContainerRef.current,
+        { y: 60, opacity: 0, duration: 0.45, ease: 'power2.in' },
+        0
+      )
     }
     if (characterRef.current) {
-      tl.to(characterRef.current, { y: 100, opacity: 0, duration: 0.45, ease: 'power2.in' }, '-=0.3')
+      tl.to(
+        characterRef.current,
+        { y: 100, opacity: 0, duration: 0.45, ease: 'power2.in' },
+        '-=0.3'
+      )
     }
     if (overlayRef.current) {
-      tl.to(overlayRef.current, { opacity: 0, duration: 0.5, ease: 'power2.inOut' }, '-=0.25')
+      tl.to(
+        overlayRef.current,
+        { opacity: 0, duration: 0.5, ease: 'power2.inOut' },
+        '-=0.25'
+      )
     }
   }
 
@@ -308,7 +325,6 @@ export default function WelcomeOverlay({
           ref={characterImgRef}
           src={displaySrc}
           alt="Mai Đạt Chibi"
-          decoding="async"
           className="h-full max-h-full w-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.65)] pointer-events-none select-none"
           draggable="false"
         />
@@ -328,8 +344,6 @@ export default function WelcomeOverlay({
           className="relative w-full max-w-[600px] md:max-w-2xl lg:max-w-3xl min-h-[140px] sm:min-h-[160px] md:min-h-[180px] bg-slate-950/70 backdrop-blur-xl border border-[#c9a96e]/30 rounded-2xl p-6 md:p-8 shadow-[0_20px_50px_rgba(0,0,0,0.6)] shadow-[#c9a96e]/5 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30 flex flex-col justify-between transition-all duration-300 hover:border-[#c9a96e]/50 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:pb-8"
           style={{ position: 'relative' }}
         >
-
-
           {/* Dialogue Text Content */}
           <div className="text-slate-100 font-sans text-[18px] md:text-base lg:text-lg leading-[1.8] md:leading-relaxed text-left tracking-wide mt-2 select-text cursor-default flex-1 max-w-full">
             {displayText}
