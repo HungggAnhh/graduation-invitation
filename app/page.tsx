@@ -601,7 +601,7 @@ function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void })
   }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+        e.preventDefault()
     if (name.trim()) {
       onSubmit(name.trim())
     }
@@ -641,7 +641,7 @@ function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void })
         }} />
 
         {/* Decorative Badge */}
-        <div style={{
+          <div style={{
           width: '56px', height: '56px', borderRadius: '50%',
           background: 'linear-gradient(135deg, rgba(201,169,110,0.2), rgba(37,99,235,0.1))',
           border: '1px solid rgba(201,169,110,0.4)',
@@ -650,7 +650,7 @@ function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void })
           boxShadow: '0 0 20px rgba(201,169,110,0.2)',
         }}>
           🎓
-        </div>
+          </div>
 
         <p style={{
           fontFamily: '"Inter", sans-serif',
@@ -659,7 +659,7 @@ function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void })
           textTransform: 'uppercase',
           color: 'rgba(96,165,250,0.6)',
           marginBottom: '12px'
-        }}>
+          }}>
           Lễ Tốt Nghiệp 2026
         </p>
 
@@ -763,7 +763,7 @@ function LaptopKeyboardModal({ onSubmit }: { onSubmit: (name: string) => void })
           }}
         >
           XÁC NHẬN 🎓
-        </button>
+                    </button>
       </form>
     </div>
   )
@@ -792,19 +792,9 @@ export default function Home() {
   const cardPreviewRef = useRef<InteractiveCardPreviewRef>(null)
   const [cardBlob, setCardBlob] = useState<Blob | null>(null)
 
-  // Init audio
+  // Init audio and pre-fetch invitation card image (moved to handleEnterInvitation to optimize initial load)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const audio = new Audio('/nhac-nen.mp3')
-      audio.loop = true
-      audioRef.current = audio
-
-      // Pre-fetch invitation card image for instant download/share on iOS
-      fetch('/thiep-moi.webp')
-        .then(res => res.blob())
-        .then(blob => setCardBlob(blob))
-        .catch(err => console.error("Lỗi tải trước thiệp:", err))
-    }
+    // Deferring large assets for optimized First Contentful Paint
   }, [])
 
   // Scroll observer
@@ -835,6 +825,19 @@ export default function Home() {
     setGuestName(name)
     setIsModalOpen(false)
     setShowWelcomeOverlay(true)
+
+    // Delay loading the 5MB audio loop until the guest enters their name to optimize initial load
+    if (typeof window !== 'undefined' && !audioRef.current) {
+      const audio = new Audio('/nhac-nen.mp3')
+      audio.loop = true
+      audioRef.current = audio
+    }
+
+    // Delay pre-fetching the invitation card image until after name submission
+    fetch('/thiep-moi.webp')
+      .then(res => res.blob())
+      .then(blob => setCardBlob(blob))
+      .catch(err => console.error("Lỗi tải trước thiệp:", err))
   }
 
   const handleStartInvitation = () => {
@@ -923,10 +926,10 @@ export default function Home() {
         const link = document.createElement('a')
         link.href = imageUrl
         link.download = fileName
-        link.target = '_blank'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
+      link.target = '_blank'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
       }
     }
   }
