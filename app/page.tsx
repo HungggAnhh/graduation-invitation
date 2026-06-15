@@ -652,7 +652,7 @@ function GraduationScroll({ guestName }: { guestName: string }) {
             >
               {[
                 { label: 'NGÀY HỘI', value: '20 / 06 / 2026' },
-                { label: 'GIỜ ĐÓN', value: '14:30 AM' },
+                { label: 'GIỜ ĐÓN', value: '14:30 PM' },
               ].map((item) => (
                 <div key={item.label} style={{ textAlign: 'center' }}>
                   <p
