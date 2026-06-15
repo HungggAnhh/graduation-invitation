@@ -790,8 +790,7 @@ export default function Home() {
 
 
   const cardPreviewRef = useRef<InteractiveCardPreviewRef>(null)
-
-
+  const [cardBlob, setCardBlob] = useState<Blob | null>(null)
 
   // Init audio
   useEffect(() => {
@@ -799,6 +798,12 @@ export default function Home() {
       const audio = new Audio('/nhac-nen.mp3')
       audio.loop = true
       audioRef.current = audio
+
+      // Pre-fetch invitation card image for instant download/share on iOS
+      fetch('/thiep-moi.webp')
+        .then(res => res.blob())
+        .then(blob => setCardBlob(blob))
+        .catch(err => console.error("Lỗi tải trước thiệp:", err))
     }
   }, [])
 
@@ -865,14 +870,65 @@ export default function Home() {
     } catch (error) { console.error("Lỗi gửi lời chúc:", error) }
   }
 
-  const handleDownloadCard = () => {
-    const link = document.createElement('a')
-    link.href = '/thiep-moi.webp'
-    link.download = `Thiep_Moi_Tot_Nghiep_${guestName || 'Khach'}.webp`
-    link.target = '_blank'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+  const handleDownloadCard = async () => {
+    const fileName = `Thiep_Moi_Tot_Nghiep_${guestName || 'Khach'}.webp`
+    const imageUrl = '/thiep-moi.webp'
+
+    // Detect iOS devices
+    const isIOS = typeof window !== 'undefined' && (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+    )
+
+    try {
+      // Use pre-fetched blob if available, otherwise fetch dynamically
+      let blob = cardBlob
+      if (!blob) {
+        const response = await fetch(imageUrl)
+        blob = await response.blob()
+      }
+
+      const file = new File([blob], fileName, { type: 'image/webp' })
+
+      if (isIOS && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Thiệp mời tốt nghiệp',
+        })
+        return
+      }
+
+      if (isIOS) {
+        // Fallback for iOS webviews/browsers without navigator.share file support:
+        // Open the image in a new tab so the user can long-press to save it
+        window.open(imageUrl, '_blank')
+        return
+      }
+
+      // Default for Android/Desktop: direct download
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      setTimeout(() => URL.revokeObjectURL(url), 100)
+    } catch (error) {
+      console.error('Lỗi khi tải hoặc chia sẻ thiệp:', error)
+      // Hard fallback: open in new tab
+      if (isIOS) {
+        window.open(imageUrl, '_blank')
+      } else {
+        const link = document.createElement('a')
+        link.href = imageUrl
+        link.download = fileName
+        link.target = '_blank'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+    }
   }
 
 
@@ -920,7 +976,7 @@ export default function Home() {
       {/* LIGHTBOX */}
       {lightboxImg && (
         <div onClick={() => setLightboxImg(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99990, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(8,13,26,0.95)', cursor: 'zoom-out', padding: '20px' }}>
-          <img src={lightboxImg} alt="Preview" style={{ maxWidth: '90%', maxHeight: '85vh', objectFit: 'contain', borderRadius: '16px', border: '1px solid rgba(201,169,110,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} />
+          <img src={lightboxImg} alt="Preview" decoding="async" style={{ maxWidth: '90%', maxHeight: '85vh', objectFit: 'contain', borderRadius: '16px', border: '1px solid rgba(201,169,110,0.2)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }} />
         </div>
       )}
 
@@ -1020,7 +1076,7 @@ export default function Home() {
                   animation: 'scanlineTech 3s ease-in-out infinite', zIndex: 5, pointerEvents: 'none',
                 }} />
                 {/* Image */}
-                <img src="/image9.webp" alt="Graduation" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src="/image9.webp" alt="Graduation" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
 
               <div style={{ marginTop: '60px', animation: 'floatSlow 3s ease-in-out infinite' }}>
@@ -1134,7 +1190,7 @@ export default function Home() {
                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(37,99,235,0.4)' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,169,110,0.1)' }}
                   >
-                    <img src={img.src} alt={img.alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
+                    <img src={img.src} alt={img.alt} decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} loading="lazy" />
                   </div>
                 ))}
               </div>
@@ -1194,7 +1250,10 @@ export default function Home() {
                     <InteractiveCardPreview ref={cardPreviewRef} guestName={guestName} />
                     <button
                       type="button"
-                      onClick={() => cardPreviewRef.current?.triggerDownload(handleDownloadCard)}
+                      onClick={() => {
+                        cardPreviewRef.current?.triggerDownload(() => {})
+                        handleDownloadCard()
+                      }}
                       style={{
                         width: '100%', padding: '16px 24px', borderRadius: '12px',
                         background: 'linear-gradient(135deg, #2563eb, #1a2f6b)',

@@ -308,6 +308,7 @@ export default function WelcomeOverlay({
           ref={characterImgRef}
           src={displaySrc}
           alt="Mai Đạt Chibi"
+          decoding="async"
           className="h-full max-h-full w-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.65)] pointer-events-none select-none"
           draggable="false"
         />
